@@ -6,6 +6,10 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Storage;
 
+use App\Services\Cme\Cad;
+
+use DB;
+
 class Kernel extends ConsoleKernel
 {
     /**
@@ -14,7 +18,13 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\GetFilesFromFTP::class
+        Commands\GetFilesFromFTP::class,
+        Commands\ParseAud::class,
+        Commands\ParseCad::class,
+        Commands\ParseChf::class,
+        Commands\ParseJpy::class,
+        Commands\ParseGbp::class,
+        Commands\ParseEur::class
     ];
 
     /**
@@ -35,6 +45,9 @@ class Kernel extends ConsoleKernel
             ->everyThirtyMinutes()
             ->withoutOverlapping()
             ->after(function () {
+                $cad = new Cad();
+                $cad->parse();
+
                 echo 'Завершено';
             });
 

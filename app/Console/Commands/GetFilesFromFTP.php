@@ -3,8 +3,16 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+
+use App\Services\Cme\Aud;
+use App\Services\Cme\Cad;
+use App\Services\Cme\Jpy;
+use App\Services\Cme\Chf;
+use App\Services\Cme\Gbp;
+use App\Services\Cme\Eur;
+
+use DB;
 
 class GetFilesFromFTP extends Command
 {
@@ -31,7 +39,7 @@ class GetFilesFromFTP extends Command
     {
         parent::__construct();
     }
-    
+
     /**
      * Execute the console command.
      *

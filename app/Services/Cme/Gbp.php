@@ -56,6 +56,7 @@ class Gbp extends Base
                 $this->addTotalCmeData($this->option->_id, $this->option_date, $data_call, $data_put);
                 $this->updatePairPrints($this->option_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
                 $this->updateCmeDayTable($this->option_date, $data_call, $data_put, $this->pair_with_major);
+                $this->updateCvs($this->option_date, $data_call, $data_put);
             }
 
             $this->finish($this->option->_id, $this->option_date);

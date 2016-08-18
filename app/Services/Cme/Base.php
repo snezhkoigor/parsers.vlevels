@@ -244,6 +244,8 @@ class Base
                     $p_call = (float)$item['reciprocal'];
                 }
             }
+        } else {
+            Log::warning('Нет данных data_call' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
         }
 
         if (count($data_put) !== 0) {
@@ -252,6 +254,8 @@ class Base
                     $p_put = (float)$item['reciprocal'];
                 }
             }
+        } else {
+            Log::warning('Нет данных data_put' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
         }
 
         if ($strike != -1) {
@@ -475,5 +479,108 @@ class Base
         }
 
         return $data;
+    }
+
+    protected function updateCvs($date, $data_call, $data_put)
+    {
+        $total_call = 0;
+        $total_put = 0;
+        $total = array();
+
+        if (count($data_call) !== 0) {
+            usort($data_call, function ($a, $b) {
+                if ((int)$a['strike'] > (int)$b['strike']) return 1; else return -1;
+            });
+
+            foreach ($data_call as $key => $item) {
+                $total_call += $item['oi'];
+
+                for ($i = 0; $i <= $key; $i++) {
+                    if (!isset($total[$item['strike']]['call'])) {
+                        $total[$item['strike']]['call'] = 0;
+                    }
+                    $total[$item['strike']]['call'] += $data_call[$i]['oi'];
+                }
+            }
+        } else {
+            Log::warning('Нет данных data_call' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+        }
+        
+        if (count($data_put) !== 0) {
+            usort($data_put, function ($a, $b) {
+                if ((int)$a['strike'] > (int)$b['strike']) return -1; else return 1;
+            });
+
+            foreach ($data_put as $key => $item) {
+                $total_put += $item['oi'];
+
+                for ($i = 0; $i <= $key; $i++) {
+                    if (!isset($total[$item['strike']]['put'])) {
+                        $total[$item['strike']]['put'] = 0;
+                    }
+                    $total[$item['strike']]['put'] += $data_put[$i]['oi'];
+                }
+            }
+        } else {
+            Log::warning('Нет данных data_put' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+        }
+
+        $balance_strike = 0;
+        if (count($total) !== 0) {
+            $balance = 0;
+
+            foreach ($total as $strike => $data) {
+                $call = 0;
+                $put = 0;
+                if (!empty($data['call']) && $total_call) {
+                    $call = ($data['call'] / $total_call) * 100;
+
+                    DB::table($this->table_month)
+                        ->where(
+                            [
+                                ['_strike', '=', $strike],
+                                ['_date', '=', $date],
+                                ['_type', '=', 0],
+                            ]
+                        )
+                        ->update(['_cvs' => $call]);
+                }
+                if (!empty($data['put']) && $total_put) {
+                    $put = ($data['put'] / $total_put) * 100;
+
+                    DB::table($this->table_month)
+                        ->where(
+                            [
+                                ['_strike', '=', $strike],
+                                ['_date', '=', $date],
+                                ['_type', '=', 1],
+                            ]
+                        )
+                        ->update(['_cvs' => $put]);
+                }
+
+                if (abs($call - $put) < $balance || $balance == 0) {
+                    $balance = abs($call - $put);
+                    $balance_strike = $strike;
+                }
+            }
+        } else {
+            Log::warning('Нет суммарных данных по страйкам при расчете _cvs' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+        }
+
+        if ($balance_strike) {
+            DB::table($this->table_month)
+                ->where(
+                    [
+                        ['_strike', '=', $balance_strike],
+                        ['_date', '=', $date],
+                    ]
+                )
+                ->update(['_cvs_balance' => 1]);
+        } else {
+            Log::warning('Нет balance_strike при расчете _cvs' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+        }
+
+        return true;
     }
 }

@@ -56,6 +56,7 @@ class Eur extends Base
                 $this->addTotalCmeData($this->option->_id, $this->option_date, $data_call, $data_put);
                 $this->updatePairPrints($this->option_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
                 $this->updateCmeDayTable($this->option_date, $data_call, $data_put, $this->pair_with_major);
+                $this->updateCvs($this->option_date, $data_call, $data_put);
             }
 
             $this->finish($this->option->_id, $this->option_date);
@@ -86,7 +87,7 @@ class Eur extends Base
                 foreach ($keys as $key) {
                     if ($c[$key + 1] == $month or $c[$key + 2] == $month) {
                         //Обрезаем найденный массив
-                        if ($c[$key+1]==$month) {
+                        if ($c[$key+1] == $month) {
                             $slice = 2;
                         } else {
                             $slice = 3;
@@ -107,6 +108,10 @@ class Eur extends Base
                         } else {
                             $flag = true;
                             $text = array_slice($data, 0, count($data) - 3);
+                        }
+
+                        if ($out) {
+                            return $this->clearEmptyStrikeValues($out);
                         }
                     }
                 }

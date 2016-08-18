@@ -10,6 +10,7 @@ namespace App\Services\Cme;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class Jpy extends Base
 {
@@ -38,7 +39,7 @@ class Jpy extends Base
 
     public function parse()
     {
-        if (!empty($this->option)) {
+        if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
@@ -101,13 +102,13 @@ class Jpy extends Base
             }
 
             if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $key_prefix = array_search('JAPAN YEN CALL', $text);
+                $base_key_prefix = array_search('JAPAN YEN CALL', $text);
             } else {
-                $key_prefix = array_search('JAPAN YEN PUT', $text);
+                $base_key_prefix = array_search('JAPAN YEN PUT', $text);
             }
 
-            if ($key_prefix !== false) {
-                $text = array_slice($text, $key_prefix + 1);
+            if ($base_key_prefix !== false) {
+                $text = array_slice($text, $base_key_prefix + 1);
                 $key_postfix=-1;
 
                 for ($i=0; $i<count($text); $i++) {
@@ -134,9 +135,17 @@ class Jpy extends Base
                         foreach ($text_month as $t) {
                             $out[] = $this->prepareArrayFromPdf($t);
                         }
+                    } else {
+                        Log::warning('Не смогли получить key_prefix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
                     }
+                } else {
+                    Log::warning('Не смогли получить key_postfix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
                 }
+            } else {
+                Log::warning('Не смогли получить base_key_prefix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
             }
+        } else {
+            Log::warning('Не смогли получить содержимое файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
         }
 
         return $this->clearEmptyStrikeValues($out);
@@ -166,6 +175,8 @@ class Jpy extends Base
             $coi = trim(str_replace('UNCH', '0', $data[7]));
             $volume = trim(str_replace("----", '0', $data[11]));
             $delta = trim(str_replace("----", '0', $data[12]));
+        } else {
+            Log::warning('При парсинге файла валюты ' . $this->pair . ' (месяц ' . $this->option->_option_month . ') .pdf в массиве количество элементов не равно 14. ');
         }
 
         return array(

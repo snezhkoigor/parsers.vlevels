@@ -9,6 +9,7 @@
 namespace App\Services\Cme;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class Aud extends Base
@@ -38,7 +39,7 @@ class Aud extends Base
 
     public function parse()
     {
-        if (!empty($this->option)) {
+        if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
@@ -101,13 +102,13 @@ class Aud extends Base
             }
 
             if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $key_prefix = array_search('AUST DLR CALL', $text);
+                $base_key_prefix = array_search('AUST DLR CALL', $text);
             } else {
-                $key_prefix = array_search('AUST DLR PUT', $text);
+                $base_key_prefix = array_search('AUST DLR PUT', $text);
             }
 
-            if ($key_prefix !== false) {
-                $text = array_slice($text, $key_prefix + 1);
+            if ($base_key_prefix !== false) {
+                $text = array_slice($text, $base_key_prefix + 1);
 
                 if ($type == self::CME_BULLETIN_TYPE_CALL) {
                     $key_postfix = array_search('AUST DLR C EU', $text);
@@ -137,9 +138,17 @@ class Aud extends Base
                         foreach ($text_month as $t) {
                             $out[] = $this->prepareArrayFromPdf($t);
                         }
+                    } else {
+                        Log::warning('Не смогли получить key_prefix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
                     }
+                } else {
+                    Log::warning('Не смогли получить key_postfix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
                 }
+            } else {
+                Log::warning('Не смогли получить base_key_prefix файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
             }
+        } else {
+            Log::warning('Не смогли получить содержимое файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
         }
 
         return $this->clearEmptyStrikeValues($out);

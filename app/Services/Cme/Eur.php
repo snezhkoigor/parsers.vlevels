@@ -10,6 +10,7 @@ namespace App\Services\Cme;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class Eur extends Base
 {
@@ -38,7 +39,7 @@ class Eur extends Base
 
     public function parse()
     {
-        if (!empty($this->option)) {
+        if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
@@ -81,9 +82,9 @@ class Eur extends Base
                     $c = array_merge($text, $c);
                 }
 
-                $keys = array_keys( $c, $key_prefix );
-                foreach ($keys as $key ) {
-                    if ($c[$key+1] == $month or $c[$key+2] == $month) {
+                $keys = array_keys($c, $key_prefix);
+                foreach ($keys as $key) {
+                    if ($c[$key + 1] == $month or $c[$key + 2] == $month) {
                         //Обрезаем найденный массив
                         if ($c[$key+1]==$month) {
                             $slice = 2;
@@ -105,11 +106,13 @@ class Eur extends Base
                             //Если начало на одной странице, а продолжение на другой
                         } else {
                             $flag = true;
-                            $text = array_slice($data, 0, count($data)-3);
+                            $text = array_slice($data, 0, count($data) - 3);
                         }
                     }
                 }
             }
+        } else {
+            Log::warning('Не смогли получить содержимое файла .pdf (' . $file . '), month: ' . $month . ', type: ' . $type);
         }
 
         return $this->clearEmptyStrikeValues($out);

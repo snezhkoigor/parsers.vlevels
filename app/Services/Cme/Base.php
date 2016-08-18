@@ -505,7 +505,7 @@ class Base
         } else {
             Log::warning('Нет данных data_call' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
         }
-        
+
         if (count($data_put) !== 0) {
             usort($data_put, function ($a, $b) {
                 if ((int)$a['strike'] > (int)$b['strike']) return -1; else return 1;

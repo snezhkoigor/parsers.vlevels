@@ -137,7 +137,7 @@ class Base
             }
 
             if (($info = DB::table($this->table_total)->where([ ['_date', '=', $date], ['_option', '=', $id] ])->first())) {
-                Log::info('Изменение суммарных данных в ' . $this->table_total . '. Данные: ' . json_encode($total) . ', _id: ' . $info->_id . ', _option: ' . $id . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+                Log::info('Изменение суммарных данных.', [ 'table' => $this->table_total, 'data' => json_encode($total), 'id' => $info->_id, 'option_id' => $id, 'date' => $date, 'put' => json_encode($data_put), 'call' => json_encode($data_call) ]);
 
                 DB::table($this->table_total)
                     ->where('_id', $info->_id)
@@ -152,7 +152,7 @@ class Base
                         ]
                     );
             } else {
-                Log::info('Добавление суммарных данных в ' . $this->table_total . '. Данные: ' . json_encode($total) . ', _option: ' . $id . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+                Log::info('Добавление суммарных данных.', [ 'table' => $this->table_total, 'data' => json_encode($total), 'option_id' => $id, 'date' => $date, 'put' => json_encode($data_put), 'call' => json_encode($data_call) ]);
 
                 DB::table($this->table_total)
                     ->insert(
@@ -169,7 +169,7 @@ class Base
                     );
             }
         } else {
-            Log::warning('Нет суммарных данных. Таблица: ' . $this->table_total . ', _option: ' . $id . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('Нет суммарных данных.', [ 'table' => $this->table_total, 'data' => json_encode($total), 'option_id' => $id, 'date' => $date, 'put' => json_encode($data_put), 'call' => json_encode($data_call) ]);
         }
     }
 
@@ -216,12 +216,12 @@ class Base
             }
 
             if (count($data_for_insert) !== 0) {
-                Log::info('Добавление основных данных в ' . $this->table_month . '. Данные: ' . json_encode($data_for_insert) . ', _type: ' . $type . ', _date: ' . $date);
+                Log::info('Добавление основных данных.', [ 'table' => $this->table_month, 'data' => json_encode($data_for_insert), 'type' => $type, 'date' => $date ]);
 
                 DB::table($this->table_month)->insert($data_for_insert);
             }
         } else {
-            Log::warning('Нет основных данных. Таблица: ' . $this->table_month . ', _type: ' . $type . ', _date: ' . $date);
+            Log::warning('Нет основных данных.', [ 'table' => $this->table_month, 'type' => $type, 'date' => $date ]);
         }
 
         return $max_oi;
@@ -245,7 +245,7 @@ class Base
                 }
             }
         } else {
-            Log::warning('Нет данных data_call' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('Нет данных call.', [ 'table' => $this->table_day, 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         if (count($data_put) !== 0) {
@@ -255,7 +255,7 @@ class Base
                 }
             }
         } else {
-            Log::warning('Нет данных data_put' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('Нет данных put.', [ 'table' => $this->table_day, 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         if ($strike != -1) {
@@ -264,7 +264,7 @@ class Base
             }
 
             if (($info = DB::table($this->table_day)->where([ ['_date', '=', $date], ['_symbol', '=', strtoupper($pair)] ])->first())) {
-                Log::info('Изменение дневных данных в ' . $this->table_day . '. Данные: ' . json_encode(['_strike' => $strike, '_p_call' => $p_call, '_p_put' => $p_put]) . ', _id: ' . $info->_id . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+                Log::info('Изменение дневных данных.', [ 'table' => $this->table_day, 'strike' => $strike, 'p_call' => $p_call, 'p_put' => $p_put, 'id' => $info->_id, 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
 
                 DB::table($this->table_day)
                     ->where('_id', $info->_id)
@@ -276,7 +276,7 @@ class Base
                         ]
                     );
             } else {
-                Log::info('Добавление дневных данных в ' . $this->table_day . '. Данные: ' . json_encode(['_symbol' => strtoupper($pair), '_date' => $date,'_strike' => $strike, '_p_call' => $p_call, '_p_put' => $p_put]) . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+                Log::info('Добавление дневных данных.', [ 'table' => $this->table_day, 'strike' => $strike, 'p_call' => $p_call, 'p_put' => $p_put, 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
 
                 DB::table($this->table_day)
                     ->insert(
@@ -292,7 +292,7 @@ class Base
 
             $result = true;
         } else {
-            Log::warning('При обработке данных для дневной табилцы ' . $this->table_day . ' не нашли значение strike. ' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('Нет значения strike.', [ 'table' => $this->table_day, 'strike' => $strike, 'p_call' => $p_call, 'p_put' => $p_put, 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         return $result;
@@ -321,7 +321,7 @@ class Base
                 }
 
                 if ($print > 0) {
-                    Log::info('Изменение значений _print в таблице ' . $this->table_month . ', _id: ' . $item->_id . ', _date: ' . $date . ', max_oi: ' . $max_oi);
+                    Log::info('Изменение значений _print.', [ 'table' => $this->table_month, 'id' => $item->_id, 'date' => $date, 'max_oi' => $max_oi, 'print' => $print ]);
 
                     DB::table($this->table_month)
                         ->where('_id', $item->_id)
@@ -329,13 +329,13 @@ class Base
                 }
             }
         } else {
-            Log::warning('Попытались изменить значения _print в таблице ' . $this->table_month . ' у несуществующей даты: ' . $date . ', max_oi: ' . $max_oi);
+            Log::warning('Ошибка даты при изменение значений _print.', [ 'table' => $this->table_month, 'date' => $date, 'max_oi' => $max_oi ]);
         }
     }
 
     public function finish($id, $date)
     {
-        Log::info('Завершили парсинг табилцы ' . $this->table_month . ', _id: ' . $id . ', _e_time: ' . $date);
+        Log::info('Завершили парсинг табилцы.', [ 'table' => $this->table_month, 'id' => $id, 'time' => $date ]);
 
         DB::table('cme_options')
             ->where('_id', $id)
@@ -351,7 +351,7 @@ class Base
             $pdf_data = file_get_contents($pdf_data);
         }
         if (!trim($pdf_data)) {
-            Log::error('Нет данных в pdf файле ('.$file.').');
+            Log::error('Нет данных в *.pdf файле .', [ 'file' => $file ]);
         }
 
         if (preg_match_all('/<<[^>]*FlateDecode[^>]*>>\s*stream(.+)endstream/Uis', $pdf_data, $m)) {
@@ -366,7 +366,7 @@ class Base
                 }
             }
         } else {
-            Log::error('В pdf файле ('.$file.') нет FlateDecode.');
+            Log::error('В *.pdf файле нет FlateDecode.', [ 'file' => $file ]);
         }
 
         return $result;
@@ -374,7 +374,7 @@ class Base
 
     protected function createMonthTable()
     {
-        Log::info('Была создана таблица ' . $this->table_month . '.');
+        Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
 
         Schema::create($this->table_month, function($table) {
             $table->increments('_id');
@@ -396,7 +396,7 @@ class Base
 
     protected function createDayTable()
     {
-        Log::info('Была создана таблица ' . $this->table_day . '.');
+        Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
 
         Schema::create($this->table_day, function($table) {
             $table->increments('_id');
@@ -412,7 +412,7 @@ class Base
 
     protected function createTotalTable()
     {
-        Log::info('Была создана таблица ' . $this->table_total . '.');
+        Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
 
         Schema::create($this->table_total, function($table) {
             $table->increments('_id');
@@ -454,7 +454,7 @@ class Base
             $volume = trim(str_replace("----", '0', $data[5]));
             $delta = trim(str_replace("----", '0', $data[11]));
         } else {
-            Log::warning('При парсинге файла валюты ' . $this->pair . ' (месяц ' . $this->option->_option_month . ') .pdf в массиве количество элементов не равно 14. ');
+            Log::warning('Количество элементов в массиве не равно 14.', [ 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
         }
 
         return array(
@@ -503,7 +503,7 @@ class Base
                 }
             }
         } else {
-            Log::warning('Нет данных data_call' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('CVS: Нет данных call.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         if (count($data_put) !== 0) {
@@ -522,7 +522,7 @@ class Base
                 }
             }
         } else {
-            Log::warning('Нет данных data_put' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('CVS: Нет данных put.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         $balance_strike = 0;
@@ -565,7 +565,7 @@ class Base
                 }
             }
         } else {
-            Log::warning('Нет суммарных данных по страйкам при расчете _cvs' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('CVS: Нет суммарных данных по страйкам.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         if ($balance_strike) {
@@ -578,7 +578,7 @@ class Base
                 )
                 ->update(['_cvs_balance' => 1]);
         } else {
-            Log::warning('Нет balance_strike при расчете _cvs' . ', _date: ' . $date . ', data_call: ' . json_encode($data_call) . ', data_put: ' . json_encode($data_put));
+            Log::warning('CVS: Нет balance_strike.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         return true;

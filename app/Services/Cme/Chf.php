@@ -47,9 +47,13 @@ class Chf extends Base
             $max_oi_put = 0;
             if (count($data_call) !== 0) {
                 $max_oi_call = $this->addCmeData($this->option_date, $data_call, self::CME_BULLETIN_TYPE_CALL);
+            } else {
+                Log::warning($this->pair . ': не смогли получить данные дефолтным CALL методом ' . $this->option_date);
             }
             if (count($data_put) !== 0) {
                 $max_oi_put = $this->addCmeData($this->option_date, $data_put, self::CME_BULLETIN_TYPE_PUT);
+            } else {
+                Log::warning($this->pair . ': не смогли получить данные дефолтным PUT методом ' . $this->option_date);
             }
 
             if (DB::table($this->table_month)->where('_date', '=', $this->option_date)->first()) {
@@ -60,6 +64,8 @@ class Chf extends Base
             }
 
             $this->finish($this->option->_id, $this->option_date);
+        } else {
+            Log::warning($this->pair . ': нет файлов на дату ' . $this->option_date);
         }
 
         return true;

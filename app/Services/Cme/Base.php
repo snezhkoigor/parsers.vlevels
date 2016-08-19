@@ -473,7 +473,7 @@ class Base
     protected function clearEmptyStrikeValues($data)
     {
         foreach ($data as $key => $item) {
-            if (empty($item['strike'])) {
+            if (empty($item['strike']) || (int)$item['strike'] <= 0) {
                 unset($data[$key]);
             }
         }

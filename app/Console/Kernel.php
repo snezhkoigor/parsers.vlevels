@@ -7,8 +7,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-use App\Services\Cme\Cad;
-
 use DB;
 
 class Kernel extends ConsoleKernel

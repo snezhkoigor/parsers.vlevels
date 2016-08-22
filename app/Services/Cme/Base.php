@@ -23,6 +23,7 @@ class Base
     const PAIR_CHF = 'CHF';
     const PAIR_AUD = 'AUD';
     const PAIR_CAD = 'CAD';
+    const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
 
     protected $files;
@@ -37,7 +38,17 @@ class Base
     protected $pair;
 
     public function __construct($date = null) {
-        $this->option_date = empty($date) ? strtotime(date("d-m-Y", (time() - 86400))) : $date;
+        if (empty($date)) {
+            // если понедельник, то берем пятницу прошлую
+            if (date('w') == 1) {
+                $this->option_date = strtotime(date("d-m-Y", (time() - 86400*3)));
+            } else {
+                $this->option_date = strtotime(date("d-m-Y", (time() - 86400)));
+            }
+        } else {
+            $this->option_date = is_int($date) ? $date : strtotime($date);
+        }
+
         $this->files = $this->getFilesAssociations($this->pair);
         $this->table = 'cme_options';
     }
@@ -92,6 +103,13 @@ class Base
                     self::CME_BULLETIN_TYPE_PUT => 'Section36_Swiss_Franc_Put_Options.pdf'
                 ];
 
+                break;
+
+            case self::PAIR_XAU:
+                $result = [
+                    self::CME_BULLETIN_TYPE_CALL => 'Section64_Metals_Option_Products.pdf',
+                    self::CME_BULLETIN_TYPE_PUT => 'Section64_Metals_Option_Products.pdf'
+                ];
                 break;
         }
 
@@ -533,7 +551,7 @@ class Base
                 $call = 0;
                 $put = 0;
                 if (!empty($data['call']) && $total_call) {
-                    $call = ($data['call'] / $total_call) * 100;
+                    $call = round(($data['call']/$total_call)*100, 2);
 
                     DB::table($this->table_month)
                         ->where(
@@ -546,7 +564,7 @@ class Base
                         ->update(['_cvs' => $call]);
                 }
                 if (!empty($data['put']) && $total_put) {
-                    $put = ($data['put'] / $total_put) * 100;
+                    $put = round(($data['put']/$total_put)*100, 2);
 
                     DB::table($this->table_month)
                         ->where(

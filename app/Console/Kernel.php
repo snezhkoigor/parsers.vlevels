@@ -23,7 +23,8 @@ class Kernel extends ConsoleKernel
         Commands\ParseChf::class,
         Commands\ParseJpy::class,
         Commands\ParseGbp::class,
-        Commands\ParseEur::class
+        Commands\ParseEur::class,
+        Commands\ParseXau::class
     ];
 
     /**

@@ -11,6 +11,7 @@ namespace App\Services\Cme;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use SGH\PdfBox\PdfBox;
 
 class Xau extends Base
 {
@@ -70,100 +71,45 @@ class Xau extends Base
 
         return true;
     }
-
+    
     private function getRows($file, $month, $type)
     {
-        $text = array();
-        $out = array();
+        $result = array();
+        $converter = new PdfBox();
 
-        $content = $this->extract($file);
+        $converter->setPathToPdfBox('public/pdfbox-app-2.0.2.jar');
+        $text = $converter->textFromPdfFile($file);
+        $pieces = explode("\n", $text);
 
-        if ($content) {
-            foreach ($content as $page) {
-                $key_final = array_search('FINAL', $page);
-
-                if ($key_final === false) {
-                    $key_final = array_search('PRELIMINARY', $page);
-                }
-
-                $buf = array_slice($page, 0, $key_final + 4);
-                $key_total = array_search('TOTAL', $buf);
-
-                if ($key_total === false) {
-                    $page = array_slice($page, $key_final + 4);
-                } else {
-                    $page = array_slice($page, $key_total);
-                }
-
-                $i = 0;
-                foreach ($page as $p) {
-                    if (strpos($p, 'THE INFORMATION CONTAINED IN THIS REPORT IS COMPILED') !== false) {
-                        break;
-                    }
-                    $i++;
-                }
-                $page = array_slice($page, 0, $i);
-                $text = array_merge($text, $page);
-            }
-
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $base_key_prefix = array_search('HX PUT', $text);
-            } else {
-                $base_key_prefix = array_search('OG PUT', $text);
-            }
-
-            if ($base_key_prefix !== false) {
-                $text = array_slice($text, $base_key_prefix + 1);
-
-                if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                    $key_postfix = array_search('COMEX SILVER OPTIONS', $text);
-                } else {
-                    $key_postfix = array_search('OG CALL', $text);
-                }
-
-                if ($key_postfix != -1) {
-                    $text = array_slice($text, 0, $key_postfix);
-
-                    $key_prefix = array_search($month, $text);
-                    if ($text[$key_prefix + 1] == $month) {
-                        $key_prefix++;
-                    }
-
-                    if ($key_prefix !== false) {
-                        $text = array_slice($text, $key_prefix, count($text));
-                        $key_postfix = array_search('TOTAL', $text);
-                        $text_month = array_slice($text, 1, $key_postfix - 1);
-                        
-                        $i = 0;
-                        $res = array();
-                        foreach ($text_month as $key => $item) {
-                            if ($item == '-') {
-                                $res[$i][] = '-';
-                                $i++;
-                            } else {
-                                $res[$i][] = $item;
-                            }
-                        }
-
-                        foreach ($res as $t) {
-                            $out[] = $this->prepareArrayFromPdf($t);
-                        }
-                    } else {
-                        Log::warning('Не смогли получить key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                    }
-                } else {
-                    Log::warning('Не смогли получить key_postfix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                }
-            } else {
-                Log::warning('Не смогли получить base_key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-            }
+        if ($type == self::CME_BULLETIN_TYPE_PUT) {
+            $start = array_search('OG PUT COMEX GOLD OPTIONS', $pieces);
+            $end = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
         } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
+            $start = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
+            $end = array_search('SO CALL COMEX SILVER OPTIONS', $pieces);
         }
-var_dump($out);die;
+
+        $pieces = array_slice($pieces, $start, $end - $start);
+
+        $month_index_start = array_search($month, $pieces);
+        for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
+            if (strpos($pieces[$i], 'TOTAL') !== false) {
+                break;
+            }
+
+            if (strpos($pieces[$i], '----') !== false) {
+                $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+            }
+        }
+
+        foreach ($result as $key => $item) {
+            $line = explode(' ', $item);
+            $out[] = $this->prepareArrayFromPdf($line);
+        }
+
         return $this->clearEmptyStrikeValues($out);
     }
-
+    
     protected function prepareArrayFromPdf($data)
     {
         $strike = null;
@@ -176,20 +122,36 @@ var_dump($out);die;
         $cvs_balance = null;
         $print = null;
 
-        if (count($data) == 16) {
-            $strike = trim($data[9]);
-            $reciprocal = str_replace(array('+', '-', 'CAB'), array('', '', '0'), $data[3]);
+        if (count($data) == 13 || count($data) == 14) {
+            $reciprocal = $data[3];
+            $oi = $data[4];
 
-            if (strrpos($data[4], '-') > 0) {
-                $data[6] = '-' . $data[6];
+            // приведем к общему виду
+            $data[6] = str_replace('----', '.0000', $data[6]);
+            if (strpos($data[6], 'UNCH') !== false) {
+                $coi = 0;
+                $delta = (float)str_replace('UNCH', '', $data[6]);
+            } else {
+                $coi_arr = explode('.', $data[6]);
+
+                if (count($coi_arr) == 2) {
+                    // приведем к общему виду
+                    $data[5] = str_replace('UNCH', '1', $data[5]);
+                    
+                    $coi = ($data[5] / abs($data[5])) * $coi_arr[0];
+                    $delta = (float)('.'.$coi_arr[1]);
+                }
+            }
+            
+            if (count($data) == 13) {
+                $strike = (int)str_replace('----', '', $data[7]);
+            } elseif (count($data) == 14) {
+                $strike = (int)str_replace('----', '', $data[8]);
             }
 
-            $oi = trim(str_replace(array('+', '-'), '', $data[4]));
-            $coi = trim(str_replace('UNCH', '0', $data[6]));
-            $volume = trim(str_replace("----", '0', $data[13]));
-            $delta = trim(str_replace("----", '0', $data[7]));
+            $volume = (int)$data[count($data)-2];
         } else {
-            Log::warning('Количество элементов в массиве не равно 16.', [ 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
+            Log::warning('Количество элементов в массиве не равно 13 или 14.', [ 'count' => count($data), 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
         }
 
         return array(

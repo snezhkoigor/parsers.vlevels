@@ -75,6 +75,7 @@ class Xau extends Base
     private function getRows($file, $month, $type)
     {
         $result = array();
+        $out = array();
         $converter = new PdfBox();
 
         $converter->setPathToPdfBox('public/pdfbox-app-2.0.2.jar');

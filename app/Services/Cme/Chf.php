@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class Chf extends Base
 {
+    public $start_index_call = 'SWISS FRNC CALL';
+    public $end_index_call = 'WKSF-1S-C';
+    public $start_index_put = 'SWISS FRNC PUT';
+    public $end_index_put = 'WKSF-1S-P';
+    
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_CHF;
@@ -69,55 +74,6 @@ class Chf extends Base
         }
 
         return true;
-    }
-
-    private function getRows($file, $month, $type)
-    {
-        $result = array();
-        $out = array();
-
-        $text = $this->newExtract($file);
-        
-        if ($text) {
-            $pieces = explode("\n", $text);
-
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $start = array_search('SWISS FRNC CALL', $pieces);
-                $end = array_search('WKSF-1S-C', $pieces);
-            } else {
-                $start = array_search('SWISS FRNC PUT', $pieces);
-                $end = array_search('WKSF-1S-P', $pieces);
-            }
-
-            $pieces = array_slice($pieces, $start, $end - $start);
-
-            $month_index_start =-1;
-            for ($i=0; $i <= count($pieces); $i ++) {
-                if (strpos($pieces[$i], $month) !== false) {
-                    $month_index_start = $i;
-                    break;
-                }
-            }
-
-            if ($month_index_start >= 0) {
-                for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
-                    if (strpos($pieces[$i], 'TOTAL') !== false) {
-                        break;
-                    }
-
-                    if (strpos($pieces[$i], '----') !== false) {
-                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
-                    }
-                }
-
-                foreach ($result as $key => $item) {
-                    $line = explode(' ', $item);
-                    $out[] = $this->prepareArrayFromPdf($line);
-                }
-            }    
-        }
-
-        return $this->clearEmptyStrikeValues($out);
     }
 
     protected function prepareArrayFromPdf($data)

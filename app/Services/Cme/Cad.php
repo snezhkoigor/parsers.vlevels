@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class Cad extends Base
 {
+    public $start_index_call = 'CANADA DLR CALL';
+    public $end_index_call = 'WKCD-1C-C';
+    public $start_index_put = 'CANADA DLR PUT';
+    public $end_index_put = 'WKCD-1C-P';
+
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_CAD;
@@ -71,88 +76,63 @@ class Cad extends Base
         return true;
     }
 
-    private function getRows($file, $month, $type)
+    protected function prepareArrayFromPdf($data)
     {
-        $text = array();
-        $out = array();
+        $strike = null;
+        $reciprocal = null;
+        $volume = null;
+        $oi = null;
+        $coi = null;
+        $delta = null;
+        $cvs = null;
+        $cvs_balance = null;
+        $print = null;
 
-        $content = $this->extract($file);
+        if (strpos($data[count($data) - 1], '----') === false) {
+            $data[count($data) - 1] = '----'.$data[count($data) - 1];
 
-        if ($content) {
-            foreach ($content as $page) {
-                $key_final = array_search('FINAL', $page);
-
-                if ($key_final === false) {
-                    $key_final = array_search('PRELIMINARY', $page);
-                }
-
-                $buf = array_slice($page, 0, $key_final + 4);
-                $key_total = array_search('TOTAL', $buf);
-
-                if ($key_total === false) {
-                    $page = array_slice($page, $key_final + 4);
-                } else {
-                    $page = array_slice($page, $key_total);
-                }
-
-                $i = 0;
-                foreach ($page as $p) {
-                    if (strpos($p, 'THE INFORMATION CONTAINED IN THIS REPORT IS COMPILED') !== false) {
-                        break;
-                    }
-                    $i++;
-                }
-                $page = array_slice($page, 0, $i);
-                $text = array_merge($text, $page);
+            if (isset($data[count($data) - 2])) {
+                unset($data[count($data) - 2]);
             }
 
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $base_key_prefix = array_search('CANADA DLR CALL', $text);
-            } else {
-                $base_key_prefix = array_search('CANADA DLR PUT', $text);
-            }
-
-            if ($base_key_prefix !== false) {
-                $text = array_slice($text, $base_key_prefix + 1);
-
-                $key_postfix = -1;
-                for ($i = 0; $i < count($text); $i++) {
-                    if (preg_match('/^WKCD/', $text[$i])) {
-                        $key_postfix = $i;
-                        break;
-                    }
-                }
-
-                if ($key_postfix != -1) {
-                    $text = array_slice($text, 0, $key_postfix);
-
-                    $key_prefix = array_search($month, $text);
-                    if ($text[$key_prefix + 1] == $month) {
-                        $key_prefix++;
-                    }
-
-                    if ($key_prefix !== false) {
-                        $text = array_slice($text, $key_prefix, count($text));
-                        $key_postfix = array_search('TOTAL', $text);
-                        $text_month = array_slice($text, 1, $key_postfix - 1);
-                        $text_month = array_chunk($text_month, 14);
-
-                        foreach ($text_month as $t) {
-                            $out[] = $this->prepareArrayFromPdf($t);
-                        }
-                    } else {
-                        Log::warning('Не смогли получить key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                    }
-                } else {
-                    Log::warning('Не смогли получить key_postfix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                }
-            } else {
-                Log::warning('Не смогли получить base_key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-            }
-        } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
+            $data = array_values($data);
         }
 
-        return $this->clearEmptyStrikeValues($out);
+        $reciprocal = (float)str_replace(array('CAB', '+', '-'), '', $data[4]);
+        $oi = (int)$data[6];
+
+        $data[7] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[7]);
+        $data[8] = str_replace('UNCH', '0', $data[8]);
+
+        $coi = ($data[7]/abs($data[7]))*$data[8];
+
+        if (strpos($data[count($data) - 2], '----') !== false) {
+            $delta = 0;
+        } elseif (strpos($data[count($data) - 2], 'A') !== false) {
+            $delta_arr = explode('A', $data[count($data) - 2]);
+
+            if (count($delta_arr) == 2) {
+                $delta = (float)$delta_arr[1];
+            }
+        } else {
+            $delta_arr = explode('.', $data[count($data) - 2]);
+
+            $delta = (float)('.'.$delta_arr[count($delta_arr) - 1]);
+        }
+
+        $strike = (int)str_replace('----', '', $data[count($data) - 1]);
+        $volume = (int)str_replace('----', '', $data[5]);
+
+        return array(
+            'strike' => $strike,
+            'reciprocal' => $reciprocal,
+            'volume' => $volume,
+            'oi' => $oi,
+            'coi' => $coi,
+            'delta' => $delta,
+            'cvs' => $cvs,
+            'cvs_balance' => $cvs_balance,
+            'print' => $print
+        );
     }
 }

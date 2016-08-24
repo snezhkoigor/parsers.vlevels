@@ -27,6 +27,11 @@ class Base
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
 
+    public $start_index_call = null;
+    public $end_index_call = null;
+    public $start_index_put = null;
+    public $end_index_put = null;
+    
     protected $files;
     protected $pair_with_major;
     protected $option;
@@ -609,5 +614,54 @@ class Base
         }
 
         return true;
+    }
+
+    protected function getRows($file, $month, $type)
+    {
+        $result = array();
+        $out = array();
+
+        $text = $this->newExtract($file);
+
+        if ($text) {
+            $pieces = explode("\n", $text);
+
+            if ($type == self::CME_BULLETIN_TYPE_CALL) {
+                $start = array_search($this->start_index_call, $pieces);
+                $end = array_search($this->end_index_call, $pieces);
+            } else {
+                $start = array_search($this->start_index_put, $pieces);
+                $end = array_search($this->end_index_put, $pieces);
+            }
+
+            $pieces = array_slice($pieces, $start, $end - $start);
+
+            $month_index_start =-1;
+            for ($i=0; $i <= count($pieces); $i ++) {
+                if (strpos($pieces[$i], $month) !== false) {
+                    $month_index_start = $i;
+                    break;
+                }
+            }
+
+            if ($month_index_start) {
+                for ($i = $month_index_start + 1; $i <= count($pieces); $i++) {
+                    if (strpos($pieces[$i], 'TOTAL') !== false) {
+                        break;
+                    }
+
+                    if (strpos($pieces[$i], '----') !== false) {
+                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+                    }
+                }
+
+                foreach ($result as $key => $item) {
+                    $line = explode(' ', $item);
+                    $out[] = $this->prepareArrayFromPdf($line);
+                }
+            }
+        }
+
+        return $this->clearEmptyStrikeValues($out);
     }
 }

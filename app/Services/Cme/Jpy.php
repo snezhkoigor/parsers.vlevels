@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class Jpy extends Base
 {
+    public $start_index_call = 'JAPAN YEN CALL';
+    public $end_index_call = 'WKJY-1J-C';
+    public $start_index_put = 'JAPAN YEN PUT';
+    public $end_index_put = 'WKJY-1J-P';
+    
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_JPY;
@@ -71,93 +76,6 @@ class Jpy extends Base
         return true;
     }
 
-    private function getRows($file, $month, $type)
-    {
-        $text = array();
-        $out = array();
-
-        $content = $this->extract($file);
-
-        if ($content) {
-            foreach ($content as $page) {
-                $key_final = array_search('FINAL', $page);
-
-                if ($key_final === false) {
-                    $key_final = array_search('PRELIMINARY', $page);
-                }
-
-                $buf = array_slice($page, 0, $key_final + 4);
-                $key_total = array_search('TOTAL', $buf);
-
-                if ($key_total === false) {
-                    $page = array_slice($page, $key_final + 4);   //Убираем заголовок старницы
-                } else {
-                    $page = array_slice($page, $key_total);
-                }
-
-                $i = 0;
-                foreach ($page as $p) {
-                    if (strpos($p, 'THE INFORMATION CONTAINED IN THIS REPORT IS COMPILED') !== false) {
-                        break;
-                    }
-
-                    $i++;
-                }
-
-                $page = array_slice($page, 0, $i);
-                $text = array_merge($text, $page);
-            }
-
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $base_key_prefix = array_search('JAPAN YEN CALL', $text);
-            } else {
-                $base_key_prefix = array_search('JAPAN YEN PUT', $text);
-            }
-
-            if ($base_key_prefix !== false) {
-                $text = array_slice($text, $base_key_prefix + 1);
-                $key_postfix=-1;
-
-                for ($i=0; $i<count($text); $i++) {
-                    if (preg_match('/^WKJY/',$text[$i])) {
-                        $key_postfix=$i;
-                        break;
-                    }
-                }
-
-                if ($key_postfix != -1) {
-                    $text = array_slice($text, 0, $key_postfix);
-                    $key_prefix = array_search($month, $text);
-
-                    if ($text[$key_prefix+1] == $month) {
-                        $key_prefix++;
-                    }
-
-                    if ($key_prefix !== false) {
-                        $text = array_slice($text, $key_prefix, count($text));
-                        $key_postfix = array_search('TOTAL', $text);
-                        $text_month = array_slice($text, 1, $key_postfix - 1);
-                        $text_month = array_chunk($text_month, 14);
-
-                        foreach ($text_month as $t) {
-                            $out[] = $this->prepareArrayFromPdf($t);
-                        }
-                    } else {
-                        Log::warning('Не смогли получить key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                    }
-                } else {
-                    Log::warning('Не смогли получить key_postfix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                }
-            } else {
-                Log::warning('Не смогли получить base_key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-            }
-        } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-        }
-
-        return $this->clearEmptyStrikeValues($out);
-    }
-
     protected function prepareArrayFromPdf($data)
     {
         $strike = null;
@@ -170,20 +88,30 @@ class Jpy extends Base
         $cvs_balance = null;
         $print = null;
 
-        if (count($data) == 14) {
-            $strike = trim($data[10]);
-            $reciprocal = str_replace(array('+', '-', 'CAB'), array('', '', '0'), $data[4]);
+        if (strlen($data[count($data) - 3]) > 3) {
+            $data = array_merge(array_slice($data, 0, 10), array(substr($data[count($data) - 3], (strlen($data[count($data) - 3]) - 4), 4)), array_slice($data, 10));
+        }
 
-            if (strrpos($data[5], '-') > 0) {
-                $data[7] = '-' . $data[7];
-            }
+        $reciprocal = (float)str_replace(array('CAB', '+', '-'), '', $data[4]);
+        $oi = (int)$data[5];
 
-            $oi = trim(str_replace(array('+', '-'), '', $data[5]));
-            $coi = trim(str_replace('UNCH', '0', $data[7]));
-            $volume = trim(str_replace("----", '0', $data[11]));
-            $delta = trim(str_replace("----", '0', $data[12]));
+        $data[6] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[6]);
+        $data[7] = str_replace('UNCH', '0', $data[7]);
+
+        $coi = ($data[6]/abs($data[6]))*$data[7];
+
+        $strike = (int)str_replace('----', '', $data[count($data) - 3]);
+        
+        if (strpos($data[count($data) - 2], '----') !== false) {
+            $volume = 0;
+            $delta = (float)str_replace('----', '', $data[count($data) - 2]);
         } else {
-            Log::warning('При парсинге файла валюты ' . $this->pair . ' (месяц ' . $this->option->_option_month . ') .pdf в массиве количество элементов не равно 14. ');
+            $volume_arr = explode('.', $data[count($data) - 2]);
+
+            if (count($volume_arr) == 2) {
+                $volume = (int)$volume_arr[0];
+                $delta = (float)('.'.$volume_arr[1]);
+            }
         }
 
         return array(

@@ -15,6 +15,11 @@ use SGH\PdfBox\PdfBox;
 
 class Xau extends Base
 {
+    public $start_index_call = 'OG PUT COMEX GOLD OPTIONS';
+    public $end_index_call = 'OG CALL COMEX GOLD OPTIONS';
+    public $start_index_put = 'OG CALL COMEX GOLD OPTIONS';
+    public $end_index_put = 'SO CALL COMEX SILVER OPTIONS';
+    
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_XAU;
@@ -72,47 +77,6 @@ class Xau extends Base
         return true;
     }
     
-    private function getRows($file, $month, $type)
-    {
-        $result = array();
-        $out = array();
-        $text = $this->newExtract($file);
-
-        if ($text) {
-            $pieces = explode("\n", $text);
-
-            if ($type == self::CME_BULLETIN_TYPE_PUT) {
-                $start = array_search('OG PUT COMEX GOLD OPTIONS', $pieces);
-                $end = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
-            } else {
-                $start = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
-                $end = array_search('SO CALL COMEX SILVER OPTIONS', $pieces);
-            }
-
-            $pieces = array_slice($pieces, $start, $end - $start);
-
-            $month_index_start = array_search($month, $pieces);
-            if ($month_index_start) {
-                for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
-                    if (strpos($pieces[$i], 'TOTAL') !== false) {
-                        break;
-                    }
-
-                    if (strpos($pieces[$i], '----') !== false) {
-                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
-                    }
-                }
-
-                foreach ($result as $key => $item) {
-                    $line = explode(' ', $item);
-                    $out[] = $this->prepareArrayFromPdf($line);
-                }
-            }
-        }
-
-        return $this->clearEmptyStrikeValues($out);
-    }
-    
     protected function prepareArrayFromPdf($data)
     {
         $strike = null;
@@ -125,47 +89,43 @@ class Xau extends Base
         $cvs_balance = null;
         $print = null;
 
-        if (count($data) == 13 || count($data) == 14) {
-            $reciprocal = $data[3];
-            $oi = $data[4];
+        if (strpos($data[count($data) - 6], '----') === false) {
+            $data[count($data) - 6] = '----'.$data[count($data) - 6];
 
-            if (strpos($data[count($data) - 6], '----') === false) {
-                $data[count($data) - 6] = '----'.$data[count($data) - 6];
-
-                if (isset($data[count($data) - 7])) {
-                    unset($data[count($data) - 7]);
-                }
-
-                $data = array_values($data);
+            if (isset($data[count($data) - 7])) {
+                unset($data[count($data) - 7]);
             }
 
-            // приведем к общему виду
-            $data[6] = str_replace('----', '.0000', $data[6]);
-            if (strpos($data[6], 'UNCH') !== false) {
-                $coi = 0;
-                $delta = (float)str_replace('UNCH', '', $data[6]);
-            } else {
-                $coi_arr = explode('.', $data[6]);
-
-                if (count($coi_arr) == 2) {
-                    // приведем к общему виду
-                    $data[5] = str_replace('UNCH', '1', $data[5]);
-                    
-                    $coi = ($data[5] / abs($data[5])) * $coi_arr[0];
-                    $delta = (float)('.'.$coi_arr[1]);
-                }
-            }
-            
-            if (count($data) == 13) {
-                $strike = (int)str_replace('----', '', $data[7]);
-            } elseif (count($data) == 14) {
-                $strike = (int)str_replace('----', '', $data[8]);
-            }
-
-            $volume = (int)$data[count($data)-2];
-        } else {
-            Log::warning('Количество элементов в массиве не равно 13 или 14.', [ 'count' => count($data), 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
+            $data = array_values($data);
         }
+        
+        $reciprocal = $data[3];
+        $oi = $data[4];
+
+        // приведем к общему виду
+        $data[6] = str_replace('----', '.0000', $data[6]);
+        if (strpos($data[6], 'UNCH') !== false) {
+            $coi = 0;
+            $delta = (float)str_replace('UNCH', '', $data[6]);
+        } else {
+            $coi_arr = explode('.', $data[6]);
+
+            if (count($coi_arr) == 2) {
+                // приведем к общему виду
+                $data[5] = str_replace('UNCH', '1', $data[5]);
+                
+                $coi = ($data[5] / abs($data[5])) * $coi_arr[0];
+                $delta = (float)('.'.$coi_arr[1]);
+            }
+        }
+        
+        if (count($data) == 13) {
+            $strike = (int)str_replace('----', '', $data[7]);
+        } elseif (count($data) == 14) {
+            $strike = (int)str_replace('----', '', $data[8]);
+        }
+
+        $volume = (int)$data[count($data)-2];
 
         return array(
             'strike' => $strike,

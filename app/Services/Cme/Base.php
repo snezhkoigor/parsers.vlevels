@@ -11,6 +11,7 @@ namespace App\Services\Cme;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use SGH\PdfBox\PdfBox;
 
 class Base
 {
@@ -358,6 +359,14 @@ class Base
         DB::table('cme_options')
             ->where('_id', $id)
             ->update(['_e_time' => $date]);
+    }
+    
+    protected function newExtract($file)
+    {
+        $converter = new PdfBox();
+
+        $converter->setPathToPdfBox('public/pdfbox-app-2.0.2.jar');
+        return $converter->textFromPdfFile($file);
     }
     
     protected function extract($file)

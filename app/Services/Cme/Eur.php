@@ -40,11 +40,8 @@ class Eur extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-            // :TODO: надо разобраиться ... тут плохо парсится!
-            $data_put_by_base = $this->getByBaseAlgorithmRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
-            $data_put_new = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
-            
-            $data_call = $this->getByBaseAlgorithmRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
+            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
+            $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
             $max_oi_call = 0;
             $max_oi_put = 0;
@@ -53,8 +50,7 @@ class Eur extends Base
             } else {
                 Log::warning('Не смогли получить основные данные дефолтным методом.', [ 'type' => self::CME_BULLETIN_TYPE_CALL, 'pair' => $this->pair, 'date' => $this->option_date ]);
             }
-            if (count($data_put_by_base) !== 0 || count($data_put_new) !== 0) {
-                $data_put = count($data_put_by_base) > count($data_put_new) ? $data_put_by_base : $data_put_new;
+            if (count($data_put) !== 0) {
                 $max_oi_put = $this->addCmeData($this->option_date, $data_put, self::CME_BULLETIN_TYPE_PUT);
             } else {
                 Log::warning('Не смогли получить основные данные дефолтным методом.', [ 'type' => self::CME_BULLETIN_TYPE_PUT, 'pair' => $this->pair, 'date' => $this->option_date ]);
@@ -75,152 +71,116 @@ class Eur extends Base
         return true;
     }
 
-    private function getByBaseAlgorithmRows($file, $month, $type)
-    {
-        $text = array();
-        $out = array();
-
-        $content = $this->extract($file);
-
-        if ($content) {
-            foreach ($content as $page) {
-                $key_final = array_search('FINAL', $page);
-
-                if ($key_final === false) {
-                    $key_final = array_search('PRELIMINARY', $page);
-                }
-
-                $buf = array_slice($page, 0, $key_final + 4);
-                $key_total = array_search('TOTAL', $buf);
-
-                if ($key_total === false) {
-                    $page = array_slice($page, $key_final + 4);
-                } else {
-                    $page = array_slice($page, $key_total);
-                }
-
-                $i = 0;
-                foreach ($page as $p) {
-                    if (strpos($p, 'THE INFORMATION CONTAINED IN THIS REPORT IS COMPILED') !== false) {
-                        break;
-                    }
-                    $i++;
-                }
-                $page = array_slice($page, 0, $i);
-                $text = array_merge($text, $page);
-            }
-
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $base_key_prefix = array_search('EURO FX CALL', $text);
-            } else {
-                $base_key_prefix = array_search('EURO FX PUT', $text);
-            }
-
-            if ($base_key_prefix !== false) {
-                $text = array_slice($text, $base_key_prefix + 1);
-
-                $key_postfix = -1;
-                for ($i = 0; $i < count($text); $i++) {
-                    if (preg_match('/^WKEC/', $text[$i])) {
-                        $key_postfix = $i;
-                        break;
-                    }
-                }
-
-                if ($key_postfix != -1) {
-                    $text = array_slice($text, 0, $key_postfix);
-
-                    $key_prefix = array_search($month, $text);
-                    if ($text[$key_prefix + 1] == $month) {
-                        $key_prefix++;
-                    }
-
-                    if ($key_prefix !== false) {
-                        $text = array_slice($text, $key_prefix, count($text));
-                        $key_postfix = array_search('TOTAL', $text);
-                        $text_month = array_slice($text, 1, $key_postfix - 1);
-                        $text_month = array_chunk($text_month, 14);
-
-                        foreach ($text_month as $t) {
-                            $out[] = $this->prepareArrayFromPdf($t);
-                        }
-                    } else {
-                        Log::warning('Не смогли получить key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                    }
-                } else {
-                    Log::warning('Не смогли получить key_postfix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                }
-            } else {
-                Log::warning('Не смогли получить base_key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-            }
-        } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-        }
-
-        $out = $this->clearEmptyStrikeValues($out);
-
-        if (count($out) === 0) {
-            $out = $this->getRows($file, $month, $type);
-        }
-
-        return $out;
-    }
-
     private function getRows($file, $month, $type)
     {
-        $flag = false;
-        $text = array();
+        $result = array();
         $out = array();
 
-        $content = $this->extract($file);
+        $text = $this->newExtract($file);
+        
+        if ($text) {
+            $pieces = explode("\n", $text);
 
-        if ($content) {
-            $key_prefix = ($type == self::CME_BULLETIN_TYPE_CALL) ? 'EURO FX CALL' : 'EURO FX PUT';
+            if ($type == self::CME_BULLETIN_TYPE_CALL) {
+                $start = array_search('EURO FX CALL', $pieces);
+                $end = array_search('EURO FX P (EU)', $pieces);
+            } else {
+                $start = array_search('EURO FX PUT', $pieces);
+                $end = array_search('WKEC-1X-C', $pieces);
+            }
 
-            foreach ($content as $c) {
-                if ($flag) {
-                    $flag = false;
-                    $c = array_slice($c, 19);   //Убираем заголовок новой старницы
-                    $c = array_merge($text, $c);
-                }
+            $pieces = array_slice($pieces, $start, $end - $start);
 
-                $keys = array_keys($c, $key_prefix);
-                foreach ($keys as $key) {
-                    if ($c[$key + 1] == $month or $c[$key + 2] == $month) {
-                        //Обрезаем найденный массив
-                        if ($c[$key+1] == $month) {
-                            $slice = 2;
-                        } else {
-                            $slice = 3;
-                        }
-
-                        $data = array_slice($c, $key);
-                        $key_2 = array_search('TOTAL', $data);
-                        //Условие, если данные перешли на другую страницу
-                        if ($key_2) {
-                            $data = array_slice($data, $slice);
-                            $data = array_slice($data, 0, $key_2);
-                            $data = array_chunk($data, 14);
-
-                            foreach ($data as $d) {
-                                $out[] = $this->prepareArrayFromPdf($d);
-                            }
-                            //Если начало на одной странице, а продолжение на другой
-                        } else {
-                            $flag = true;
-                            $text = array_slice($data, 0, count($data) - 3);
-                        }
-
-                        if ($out) {
-                            return $this->clearEmptyStrikeValues($out);
-                        }
-                    }
+            $month_index_start =-1;
+            for ($i=0; $i <= count($pieces); $i ++) {
+                if (strpos($pieces[$i], $month) !== false) {
+                    $month_index_start = $i;
+                    break;
                 }
             }
-        } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
+
+            if ($month_index_start) {
+                for ($i = $month_index_start + 1; $i <= count($pieces); $i++) {
+                    if (strpos($pieces[$i], 'TOTAL') !== false) {
+                        break;
+                    }
+
+                    if (strpos($pieces[$i], '----') !== false) {
+                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+                    }
+                }
+
+                foreach ($result as $key => $item) {
+                    $line = explode(' ', $item);
+                    $out[] = $this->prepareArrayFromPdf($line);
+                }    
+            }
         }
 
         return $this->clearEmptyStrikeValues($out);
+    }
+
+    protected function prepareArrayFromPdf($data)
+    {
+        $strike = null;
+        $reciprocal = null;
+        $volume = null;
+        $oi = null;
+        $coi = null;
+        $delta = null;
+        $cvs = null;
+        $cvs_balance = null;
+        $print = null;
+
+        if (count($data) == 12) {
+            $reciprocal = (float)str_replace('CAB', '', $data[4]);
+            $oi = (int)$data[6];
+
+            if (strpos($data[count($data) - 1], '----') === false) {
+                $data[count($data) - 1] = '----'.$data[count($data) - 1];
+
+                if (isset($data[count($data) - 2])) {
+                    unset($data[count($data) - 2]);
+                }
+
+                $data = array_values($data);
+            }
+            
+            $data[7] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[7]);
+            $data[8] = str_replace('UNCH', '0', $data[8]);
+
+            $coi = ($data[7]/abs($data[7]))*$data[8];
+
+            if (strpos($data[count($data) - 2], '----') !== false) {
+                $delta = 0;
+            } elseif (strpos($data[count($data) - 2], 'A') !== false) {
+                $delta_arr = explode('A', $data[count($data) - 2]);
+                
+                if (count($delta_arr) == 2) {
+                    $delta = (float)$delta_arr[1];
+                }
+            } else {
+                $delta_arr = explode('.', $data[count($data) - 2]);
+
+                $delta = (float)('.'.$delta_arr[count($delta_arr) - 1]);
+            }
+
+            $strike = (int)str_replace('----', '', $data[count($data) - 1]);
+            $volume = (int)str_replace('----', '', $data[5]);
+        } else {
+            Log::warning('Количество элементов в массиве не равно 12.', [ 'count' => count($data), 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
+        }
+
+        return array(
+            'strike' => $strike,
+            'reciprocal' => $reciprocal,
+            'volume' => $volume,
+            'oi' => $oi,
+            'coi' => $coi,
+            'delta' => $delta,
+            'cvs' => $cvs,
+            'cvs_balance' => $cvs_balance,
+            'print' => $print
+        );
     }
 }

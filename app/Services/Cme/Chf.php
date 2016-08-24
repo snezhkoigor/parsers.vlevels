@@ -73,88 +73,118 @@ class Chf extends Base
 
     private function getRows($file, $month, $type)
     {
-        $text = array();
+        $result = array();
         $out = array();
 
-        $content = $this->extract($file);
-
-        if ($content) {
-            foreach ($content as $page) {
-                $key_final = array_search('FINAL', $page);
-
-                if ($key_final === false) {
-                    $key_final = array_search('PRELIMINARY', $page);
-                }
-
-                $buf = array_slice($page, 0, $key_final + 1);
-                $key_total = array_search('TOTAL', $buf);
-
-                if ($key_total === false) {
-                    $page = array_slice($page, $key_final + 1);   //Убираем заголовок старницы
-                } else {
-                    $page = array_slice($page, $key_total);
-                }
-
-                $i = 0;
-                foreach ($page as $p) {
-                    if (strpos($p, 'THE INFORMATION CONTAINED IN THIS REPORT IS COMPILED') !== false) {
-                        break;
-                    }
-
-                    $i++;
-                }
-
-                $page = array_slice($page, 0, $i);
-                $text = array_merge($text, $page);
-            }
+        $text = $this->newExtract($file);
+        
+        if ($text) {
+            $pieces = explode("\n", $text);
 
             if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $base_key_prefix = array_search('SWISS FRNC CALL', $text);
+                $start = array_search('SWISS FRNC CALL', $pieces);
+                $end = array_search('WKSF-1S-C', $pieces);
             } else {
-                $base_key_prefix = array_search('SWISS FRNC PUT', $text);
+                $start = array_search('SWISS FRNC PUT', $pieces);
+                $end = array_search('WKSF-1S-P', $pieces);
             }
 
-            if ($base_key_prefix !== false) {
-                $text = array_slice($text, $base_key_prefix + 1);
-                $key_postfix=-1;
+            $pieces = array_slice($pieces, $start, $end - $start);
 
-                for ($i=0; $i<count($text); $i++) {
-                    if (preg_match('/^WKSF/',$text[$i])) {
-                        $key_postfix=$i;
+            $month_index_start =-1;
+            for ($i=0; $i <= count($pieces); $i ++) {
+                if (strpos($pieces[$i], $month) !== false) {
+                    $month_index_start = $i;
+                    break;
+                }
+            }
+
+            if ($month_index_start >= 0) {
+                for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
+                    if (strpos($pieces[$i], 'TOTAL') !== false) {
                         break;
                     }
+
+                    if (strpos($pieces[$i], '----') !== false) {
+                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+                    }
                 }
 
-                if ($key_postfix != -1) {
-                    $text = array_slice($text, 0, $key_postfix);
-                    $key_prefix = array_search($month, $text);
-
-                    if ($text[$key_prefix+1] == $month) {
-                        $key_prefix++;
-                    }
-
-                    if ($key_prefix !== false) {
-                        $text = array_slice($text, $key_prefix, count($text));
-                        $key_postfix = array_search('TOTAL', $text);
-                        $text_month = array_slice($text, 1, $key_postfix - 1);
-                        $text_month = array_chunk($text_month, 14);
-
-                        foreach ($text_month as $t) {
-                            $out[] = $this->prepareArrayFromPdf($t);
-                        }
-                    } else {
-                        Log::warning('Не смогли получить key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-                    }
-                } else {
-                    Log::warning('Не смогли получить key_postfix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
+                foreach ($result as $key => $item) {
+                    $line = explode(' ', $item);
+                    $out[] = $this->prepareArrayFromPdf($line);
                 }
-            } else {
-                Log::warning('Не смогли получить base_key_prefix файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
-            }
-        } else {
-            Log::warning('Не смогли получить содержимое файла *.pdf.', [ 'file' => $file, 'month' => $month, 'type' => $type ]);
+            }    
         }
 
         return $this->clearEmptyStrikeValues($out);
+    }
+
+    protected function prepareArrayFromPdf($data)
+    {
+        $strike = null;
+        $reciprocal = null;
+        $volume = null;
+        $oi = null;
+        $coi = null;
+        $delta = null;
+        $cvs = null;
+        $cvs_balance = null;
+        $print = null;
+
+        if (strpos($data[count($data) - 1], '----') === false) {
+            $data[count($data) - 1] = '----'.$data[count($data) - 1];
+            
+            if (isset($data[count($data) - 2])) {
+                unset($data[count($data) - 2]);
+            }
+            
+            $data = array_values($data);
+        }
+
+        $reciprocal = (float)str_replace('CAB', '', $data[4]);
+        $strike = (int)str_replace('----', '', $data[count($data) - 1]);
+
+        if (strpos($data[count($data) - 2], '----') !== false) {
+            $delta = 0;
+        } elseif (strpos($data[count($data) - 2], 'A') !== false) {
+            $delta_arr = explode('A', $data[count($data) - 2]);
+
+            if (count($delta_arr) == 2) {
+                $delta = (float)$delta_arr[1];
+            }
+        } else {
+            $delta_arr = explode('.', $data[count($data) - 2]);
+            $delta = (float)('.'.$delta_arr[count($delta_arr) - 1]);
+        }
+        
+        if (count($data) == 13) {
+            $oi = (int)$data[7];
+
+            $data[8] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[8]);
+            $data[9] = str_replace('UNCH', '0', $data[9]);
+            $coi = ($data[8]/abs($data[8]))*$data[9];
+
+            $volume = (int)str_replace('----', '', $data[6]);
+        } else {
+            $oi = (int)$data[6];
+            $volume = (int)str_replace('----', '', $data[5]);
+
+            $data[7] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[7]);
+            $data[8] = str_replace('UNCH', '0', $data[8]);
+            $coi = ($data[7]/abs($data[7]))*$data[8];
+        }
+
+        return array(
+            'strike' => $strike,
+            'reciprocal' => $reciprocal,
+            'volume' => $volume,
+            'oi' => $oi,
+            'coi' => $coi,
+            'delta' => $delta,
+            'cvs' => $cvs,
+            'cvs_balance' => $cvs_balance,
+            'print' => $print
+        );
     }
 }

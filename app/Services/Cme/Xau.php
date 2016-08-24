@@ -76,36 +76,38 @@ class Xau extends Base
     {
         $result = array();
         $out = array();
-        $converter = new PdfBox();
+        $text = $this->newExtract($file);
 
-        $converter->setPathToPdfBox('public/pdfbox-app-2.0.2.jar');
-        $text = $converter->textFromPdfFile($file);
-        $pieces = explode("\n", $text);
+        if ($text) {
+            $pieces = explode("\n", $text);
 
-        if ($type == self::CME_BULLETIN_TYPE_PUT) {
-            $start = array_search('OG PUT COMEX GOLD OPTIONS', $pieces);
-            $end = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
-        } else {
-            $start = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
-            $end = array_search('SO CALL COMEX SILVER OPTIONS', $pieces);
-        }
-
-        $pieces = array_slice($pieces, $start, $end - $start);
-
-        $month_index_start = array_search($month, $pieces);
-        for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
-            if (strpos($pieces[$i], 'TOTAL') !== false) {
-                break;
+            if ($type == self::CME_BULLETIN_TYPE_PUT) {
+                $start = array_search('OG PUT COMEX GOLD OPTIONS', $pieces);
+                $end = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
+            } else {
+                $start = array_search('OG CALL COMEX GOLD OPTIONS', $pieces);
+                $end = array_search('SO CALL COMEX SILVER OPTIONS', $pieces);
             }
 
-            if (strpos($pieces[$i], '----') !== false) {
-                $result[] = preg_replace('| +|', ' ', $pieces[$i]);
-            }
-        }
+            $pieces = array_slice($pieces, $start, $end - $start);
 
-        foreach ($result as $key => $item) {
-            $line = explode(' ', $item);
-            $out[] = $this->prepareArrayFromPdf($line);
+            $month_index_start = array_search($month, $pieces);
+            if ($month_index_start) {
+                for ($i = $month_index_start + 1; $i <= count($pieces); $i ++) {
+                    if (strpos($pieces[$i], 'TOTAL') !== false) {
+                        break;
+                    }
+
+                    if (strpos($pieces[$i], '----') !== false) {
+                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+                    }
+                }
+
+                foreach ($result as $key => $item) {
+                    $line = explode(' ', $item);
+                    $out[] = $this->prepareArrayFromPdf($line);
+                }
+            }
         }
 
         return $this->clearEmptyStrikeValues($out);
@@ -126,6 +128,16 @@ class Xau extends Base
         if (count($data) == 13 || count($data) == 14) {
             $reciprocal = $data[3];
             $oi = $data[4];
+
+            if (strpos($data[count($data) - 6], '----') === false) {
+                $data[count($data) - 6] = '----'.$data[count($data) - 6];
+
+                if (isset($data[count($data) - 7])) {
+                    unset($data[count($data) - 7]);
+                }
+
+                $data = array_values($data);
+            }
 
             // приведем к общему виду
             $data[6] = str_replace('----', '.0000', $data[6]);

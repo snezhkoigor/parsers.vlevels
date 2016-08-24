@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\GetForwardPointsFromFTP::class,
         Commands\GetFilesFromFTP::class,
         Commands\ParseAud::class,
         Commands\ParseCad::class,

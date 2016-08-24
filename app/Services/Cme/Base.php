@@ -31,7 +31,7 @@ class Base
     public $end_index_call = null;
     public $start_index_put = null;
     public $end_index_put = null;
-    
+
     protected $files;
     protected $pair_with_major;
     protected $option;

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 use App\Services\Cme\Aud;
@@ -72,40 +73,42 @@ class GetFilesFromFTP extends Command
                         $last_file = $content;
                     }
                 }
-            }
 
-            $last_file = str_replace(env('CME_FTP_CONTENTS_FOLDER') . '/', '', $last_file);
+                $last_file = str_replace(env('CME_FTP_CONTENTS_FOLDER') . '/', '', $last_file);
 
-            $disk->makeDirectory(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/');
+                $disk->makeDirectory(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/');
 
-            // попытка скачать и распаковать архив
-            $local_file = env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . substr($last_file, -4);
-            $ftp_file = 'ftp://' . env('CME_FTP_URL') . '/' . env('CME_FTP_CONTENTS_FOLDER') . '/' . $last_file;
+                // попытка скачать и распаковать архив
+                $local_file = env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . substr($last_file, -4);
+                $ftp_file = 'ftp://' . env('CME_FTP_URL') . '/' . env('CME_FTP_CONTENTS_FOLDER') . '/' . $last_file;
 
-            if (count($disk->files(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/')) == 0) {
-                if (!$disk->exists($local_file)) {
-                    if (copy($ftp_file, $path_prefix . $local_file)) {
-                        $zip = new \ZipArchive;
+                if (count($disk->files(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/')) == 0) {
+                    if (!$disk->exists($local_file)) {
+                        if (copy($ftp_file, $path_prefix . $local_file)) {
+                            $zip = new \ZipArchive;
 
-                        if ($zip->open($path_prefix . $local_file) === true) {
-                            $disk->makeDirectory(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/');
+                            if ($zip->open($path_prefix . $local_file) === true) {
+                                $disk->makeDirectory(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/');
 
-                            $zip->extractTo($path_prefix . env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/');
-                            $zip->close();
+                                $zip->extractTo($path_prefix . env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/');
+                                $zip->close();
 
-                            echo "Файлы скопированы и распакованы.\n";
-                        } else {
-                            echo "Файлы не были скопированы и распакованы.\n";
+                                Log::warning('Файлы скопированы и распакованы.', [ 'file' => $local_file ]);
+                            } else {
+                                Log::warning('Файлы не были скопированы и распакованы.', [ 'file' => $local_file ]);
+                            }
                         }
+                    } else {
+                        Log::warning('Файл уже скопирован и распакован.', [ 'file' => $local_file ]);
                     }
-                } else {
-                    echo "Файл уже скопирован и распакован.\n";
-                }
 
-                $disk->delete($local_file);
-                ftp_close($conn_id);
+                    $disk->delete($local_file);
+                    ftp_close($conn_id);
+                } else {
+                    Log::warning('Директория уже не пуста.', [ 'folder' => $disk->files(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/') ]);
+                }
             } else {
-                echo "Директория уже не пуста.\n";
+                Log::warning('Не смогли получить содержимое папки bulletin по ftp.');
             }
         }
     }

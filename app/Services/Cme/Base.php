@@ -366,7 +366,7 @@ class Base
             ->update(['_e_time' => $date]);
     }
     
-    protected function newExtract($file)
+    protected function extract($file)
     {
         $converter = new PdfBox();
 
@@ -374,7 +374,7 @@ class Base
         return $converter->textFromPdfFile($file);
     }
     
-    protected function extract($file)
+    protected function oldExtract($file)
     {
         $result = array();
         $pdf_data = file_get_contents($file);
@@ -621,7 +621,7 @@ class Base
         $result = array();
         $out = array();
 
-        $text = $this->newExtract($file);
+        $text = $this->extract($file);
 
         if ($text) {
             $pieces = explode("\n", $text);

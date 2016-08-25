@@ -418,7 +418,7 @@ class Base
             $table->integer('_oi');
             $table->integer('_coi');
             $table->double('_delta', 5, 4);
-            $table->double('_cvs', 4, 1)->nullable();
+            $table->double('_cvs', 4, 2)->nullable();
             $table->tinyInteger('_cvs_balance')->nullable();
             $table->integer('_print')->nullable();
         });

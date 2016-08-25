@@ -16,7 +16,7 @@ class GetForwardPointsFromFTP extends Command
      *
      * @var string
      */
-    protected $signature = 'GetForwardPointsFromFTP';
+    protected $signature = 'getForwardPointsFromFTP';
 
     /**
      * The console command description.

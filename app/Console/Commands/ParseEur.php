@@ -12,7 +12,7 @@ class ParseEur extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseEur';
+    protected $signature = 'parseEur';
 
     /**
      * The console command description.

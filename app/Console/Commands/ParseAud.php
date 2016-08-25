@@ -12,7 +12,7 @@ class ParseAud extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseAud';
+    protected $signature = 'parseAud';
 
     /**
      * The console command description.

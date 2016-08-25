@@ -12,7 +12,7 @@ class ParseGbp extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseGbp';
+    protected $signature = 'parseGbp';
 
     /**
      * The console command description.

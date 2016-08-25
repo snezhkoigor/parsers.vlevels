@@ -49,7 +49,7 @@ class Kernel extends ConsoleKernel
                 Log::info('Файлы успешно скопированы в папку ' . env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/');
             });
 
-        $schedule->command('ParseAud')
+        $schedule->command('parseAud')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг AUD');
             })
@@ -59,7 +59,7 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг AUD');
             });
 
-        $schedule->command('ParseCad')
+        $schedule->command('parseCad')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг CAD');
             })
@@ -69,7 +69,7 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CAD');
             });
 
-        $schedule->command('ParseChf')
+        $schedule->command('parseChf')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг CHF');
             })
@@ -79,7 +79,7 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CHF');
             });
 
-        $schedule->command('ParseEur')
+        $schedule->command('parseEur')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг EUR');
             })
@@ -89,7 +89,7 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг EUR');
             });
 
-        $schedule->command('ParseGbp')
+        $schedule->command('parseGbp')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг Gbp');
             })
@@ -99,7 +99,7 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Gbp');
             });
 
-        $schedule->command('ParseJpy')
+        $schedule->command('parseJpy')
             ->before(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг JPY');
             })
@@ -107,6 +107,26 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->after(function () {
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг JPY');
+            });
+
+        $schedule->command('parseXau')
+            ->before(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг XAU');
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU');
+            });
+
+        $schedule->command('getForwardPointsFromFTP')
+            ->before(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг Forward points');
+            })
+            ->hourly()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points');
             });
     }
 }

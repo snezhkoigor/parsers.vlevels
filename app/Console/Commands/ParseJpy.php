@@ -12,7 +12,7 @@ class ParseJpy extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseJpy';
+    protected $signature = 'parseJpy';
 
     /**
      * The console command description.

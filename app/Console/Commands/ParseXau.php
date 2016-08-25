@@ -12,7 +12,7 @@ class ParseXau extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseXau';
+    protected $signature = 'parseXau';
 
     /**
      * The console command description.

@@ -12,7 +12,7 @@ class ParseChf extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseChf';
+    protected $signature = 'parseChf';
 
     /**
      * The console command description.

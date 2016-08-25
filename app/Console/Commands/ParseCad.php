@@ -12,7 +12,7 @@ class ParseCad extends Command
      *
      * @var string
      */
-    protected $signature = 'ParseCad';
+    protected $signature = 'parseCad';
 
     /**
      * The console command description.

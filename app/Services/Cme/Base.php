@@ -654,7 +654,7 @@ class Base
                         $result[] = preg_replace('| +|', ' ', $pieces[$i]);
                     }
                 }
-
+   
                 foreach ($result as $key => $item) {
                     $line = explode(' ', $item);
                     $out[] = $this->prepareArrayFromPdf($line);

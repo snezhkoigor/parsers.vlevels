@@ -89,7 +89,7 @@ class Cad extends Base
         $print = null;
 
         if (strpos($data[count($data) - 1], '----') === false) {
-            $data[count($data) - 1] = '----'.$data[count($data) - 1];
+//            $data[count($data) - 1] = '----'.$data[count($data) - 1];
 
             if (isset($data[count($data) - 2])) {
                 unset($data[count($data) - 2]);

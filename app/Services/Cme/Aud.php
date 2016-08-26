@@ -88,8 +88,10 @@ class Aud extends Base
         $cvs_balance = null;
         $print = null;
 
+//        $data[count($data) - 1] = str_replace('----', '', $data[count($data) - 1]);
+        
         if (strpos($data[count($data) - 1], '----') === false) {
-            $data[count($data) - 1] = '----'.$data[count($data) - 1];
+//            $data[count($data) - 1] = '----'.$data[count($data) - 1];
 
             if (isset($data[count($data) - 2])) {
                 unset($data[count($data) - 2]);

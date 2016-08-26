@@ -88,6 +88,8 @@ class Jpy extends Base
         $cvs_balance = null;
         $print = null;
 
+//        $data[count($data) - 3] = str_replace('----', '', $data[count($data) - 3]);
+
         if (strlen($data[count($data) - 3]) > 3) {
             $data = array_merge(array_slice($data, 0, 10), array(substr($data[count($data) - 3], (strlen($data[count($data) - 3]) - 4), 4)), array_slice($data, 10));
         }

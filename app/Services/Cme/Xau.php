@@ -15,10 +15,10 @@ use SGH\PdfBox\PdfBox;
 
 class Xau extends Base
 {
-    public $start_index_call = 'OG PUT COMEX GOLD OPTIONS';
-    public $end_index_call = 'OG CALL COMEX GOLD OPTIONS';
-    public $start_index_put = 'OG CALL COMEX GOLD OPTIONS';
-    public $end_index_put = 'SO CALL COMEX SILVER OPTIONS';
+    public $start_index_put = 'OG PUT COMEX GOLD OPTIONS';
+    public $end_index_put = 'OG CALL COMEX GOLD OPTIONS';
+    public $start_index_call = 'OG CALL COMEX GOLD OPTIONS';
+    public $end_index_call = 'SO CALL COMEX SILVER OPTIONS';
     
     public function __construct($date = null)
     {
@@ -46,7 +46,7 @@ class Xau extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
+//            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
             $max_oi_call = 0;
@@ -98,6 +98,11 @@ class Xau extends Base
 
             $data = array_values($data);
         }
+
+        $data[count($data) - 6] = str_replace('----', '', $data[count($data) - 6]);
+        if (strlen($data[count($data) - 6]) > 4) {
+            $data = array_merge(array_slice($data, 0, 7), array(substr($data[count($data) - 6], (strlen($data[count($data) - 6]) - 4))), array_slice($data, 8));
+        }
         
         $reciprocal = $data[3];
         $oi = $data[4];
@@ -119,12 +124,7 @@ class Xau extends Base
             }
         }
         
-        if (count($data) == 13) {
-            $strike = (int)str_replace('----', '', $data[7]);
-        } elseif (count($data) == 14) {
-            $strike = (int)str_replace('----', '', $data[8]);
-        }
-
+        $strike = (int)str_replace('----', '', $data[count($data) - 6]);
         $volume = (int)$data[count($data)-2];
 
         return array(

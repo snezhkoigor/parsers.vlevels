@@ -31,6 +31,8 @@ class Base
     public $end_index_call = null;
     public $start_index_put = null;
     public $end_index_put = null;
+    public $new_page_key_call = null;
+    public $new_page_key_put = null;
 
     protected $files;
     protected $pair_with_major;
@@ -368,40 +370,8 @@ class Base
     
     protected function extract($file)
     {
-        $converter = new PdfBox();
-
-        $converter->setPathToPdfBox('public/pdfbox-app-2.0.2.jar');
-        return $converter->textFromPdfFile($file);
-    }
-    
-    protected function oldExtract($file)
-    {
-        $result = array();
-        $pdf_data = file_get_contents($file);
-
-        if (strlen($pdf_data) < 1000 && file_exists($pdf_data)) {
-            $pdf_data = file_get_contents($pdf_data);
-        }
-        if (!trim($pdf_data)) {
-            Log::error('Нет данных в *.pdf файле .', [ 'file' => $file ]);
-        }
-
-        if (preg_match_all('/<<[^>]*FlateDecode[^>]*>>\s*stream(.+)endstream/Uis', $pdf_data, $m)) {
-            foreach ($m[1] as $chunk) {
-                $chunk = gzuncompress(ltrim($chunk));
-                $a = preg_match_all('/\[([^\]]+)\]/', $chunk, $m2) ? $m2[1] : array($chunk);
-
-                foreach ($a as $sub_chunk) {
-                    if (preg_match_all('/\(([^\)]+)\)/', $sub_chunk, $m3)) {
-                        $result[] = $m3[1];
-                    }
-                }
-            }
-        } else {
-            Log::error('В *.pdf файле нет FlateDecode.', [ 'file' => $file ]);
-        }
-
-        return $result;
+        $pdfToText = \XPDF\PdfToText::create();
+        return $pdfToText->getText($file);
     }
 
     protected function createMonthTable()
@@ -463,31 +433,12 @@ class Base
 
     protected function prepareArrayFromPdf($data)
     {
-        $strike = null;
-        $reciprocal = null;
-        $volume = null;
-        $oi = null;
-        $coi = null;
-        $delta = null;
-        $cvs = null;
-        $cvs_balance = null;
-        $print = null;
-
-        if (count($data) == 14) {
-            $strike = trim($data[13]);
-            $reciprocal = str_replace(array('+', '-', 'CAB'), array('', '', '0'), $data[4]);
-
-            if (strrpos($data[6], '-') > 0) {
-                $data[8] = '-' . $data[8];
-            }
-
-            $oi = trim(str_replace(array('+', '-'), '', $data[6]));
-            $coi = trim(str_replace('UNCH', '0', $data[8]));
-            $volume = trim(str_replace("----", '0', $data[5]));
-            $delta = trim(str_replace("----", '0', $data[11]));
-        } else {
-            Log::warning('Количество элементов в массиве не равно 14.', [ 'pair' => $this->pair, 'date' => $this->option->_option_month ]);
-        }
+        $strike = (int)$data[14];
+        $oi = (int)$data[6];
+        $coi = (($data[7] == '+') ? 1 : -1 )*(int)$data[9];
+        $delta = (float)$data[12];
+        $reciprocal = (float)$data[4];
+        $volume = (int)$data[5];
 
         return array(
             'strike' => $strike,
@@ -496,9 +447,9 @@ class Base
             'oi' => $oi,
             'coi' => $coi,
             'delta' => $delta,
-            'cvs' => $cvs,
-            'cvs_balance' => $cvs_balance,
-            'print' => $print
+            'cvs' => null,
+            'cvs_balance' => null,
+            'print' => null
         );
     }
 
@@ -618,50 +569,124 @@ class Base
 
     protected function getRows($file, $month, $type)
     {
-        $result = array();
         $out = array();
-
         $text = $this->extract($file);
 
-        if ($text) {
+        if ($type == self::CME_BULLETIN_TYPE_CALL) {
+            $start = strpos($text, $this->start_index_call);
+            $end = strpos($text, $this->end_index_call);
+            $page_key = $this->new_page_key_call;
+        } else {
+            $start = strpos($text, $this->start_index_put);
+            $end = strpos($text, $this->end_index_put);
+            $page_key = $this->new_page_key_put;
+        }
+
+        if ($start && $end) {
+            $text = substr($text, $start, $end - $start);
+            $start = strpos($text, $month);
+            $text = substr($text, $start + strlen($month));
+            $end = strpos($text, 'TOTAL');
+            // получили нужный текст
+            $text = substr($text, 0, $end);
+
+            // теперь надо его избавить от страниц
+            while ($pos = strpos($text, $page_key)) {
+                $start_pos = strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT');
+                
+                if ($start_pos === false) {
+                    $start_pos = $pos;
+                }
+
+                $text = substr($text, 0, $start_pos) . substr($text, $pos + strlen($page_key));
+            }
+
             $pieces = explode("\n", $text);
 
-            if ($type == self::CME_BULLETIN_TYPE_CALL) {
-                $start = array_search($this->start_index_call, $pieces);
-                $end = array_search($this->end_index_call, $pieces);
-            } else {
-                $start = array_search($this->start_index_put, $pieces);
-                $end = array_search($this->end_index_put, $pieces);
-            }
+            $parser_element_key = 1;
+            $strike_key = 0;
 
-            $pieces = array_slice($pieces, $start, $end - $start);
+            $result = array();
+            foreach ($pieces as $item_key => $item) {
+                if ($item !== '' && $item !== '+' && $item !== '-' && strpos($item, 'FUTURES SETT.') === false) {
+                    $result[$strike_key][] = $item;
 
-            $month_index_start =-1;
-            for ($i=0; $i <= count($pieces); $i ++) {
-                if (strpos($pieces[$i], $month) !== false) {
-                    $month_index_start = $i;
-                    break;
-                }
-            }
-
-            if ($month_index_start) {
-                for ($i = $month_index_start + 1; $i <= count($pieces); $i++) {
-                    if (strpos($pieces[$i], 'TOTAL') !== false) {
-                        break;
-                    }
-
-                    if (strpos($pieces[$i], '----') !== false) {
-                        $result[] = preg_replace('| +|', ' ', $pieces[$i]);
+                    if ($parser_element_key == 4) {
+                        $strike_key++;
+                        $parser_element_key = 1;
+                    } else {
+                        $parser_element_key++;
                     }
                 }
-   
-                foreach ($result as $key => $item) {
-                    $line = explode(' ', $item);
-                    $out[] = $this->prepareArrayFromPdf($line);
+            }
+
+            if (count($result) !== 0) {
+                foreach ($result as $key => $rows) {
+                    $strike_data = array();
+                    foreach ($rows as $row_key => $row) {
+                        $row_arr = $this->prepareItemFromParse($row_key, $row);
+
+                        if (count($row_arr) !== 0) {
+                            foreach ($row_arr as $row_arr_key => $item) {
+                                $strike_data[] = trim($item);
+                            }
+                        }
+                    }
+
+                    $out[] = $this->prepareArrayFromPdf($strike_data);
                 }
             }
         }
 
         return $this->clearEmptyStrikeValues($out);
+    }
+
+    protected function prepareItemFromParse($key, $data)
+    {
+        $result = array();
+
+        switch ($key) {
+            case 0:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 8) {
+                    $result = $data_arr;
+                } else if (count($data_arr) == 7) {
+                    $result = array_merge($data_arr, array('+'));
+                }
+
+                break;
+
+            case 1:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 4) {
+                    $result = $data_arr;
+                } else {
+
+                }
+
+                break;
+
+            case 2:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
+
+                break;
+
+            case 3:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 1) {
+                    $result = $data_arr;
+                }
+
+                break;
+        }
+
+        return $result;
     }
 }

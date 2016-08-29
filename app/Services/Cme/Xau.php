@@ -11,7 +11,6 @@ namespace App\Services\Cme;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use SGH\PdfBox\PdfBox;
 
 class Xau extends Base
 {
@@ -19,13 +18,13 @@ class Xau extends Base
     public $end_index_put = 'OG CALL COMEX GOLD OPTIONS';
     public $start_index_call = 'OG CALL COMEX GOLD OPTIONS';
     public $end_index_call = 'SO CALL COMEX SILVER OPTIONS';
-    
+
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_XAU;
 
         parent::__construct($date);
-        
+
         $this->pair_with_major = self::PAIR_XAU.self::PAIR_USD;
         $this->option = DB::table($this->table)
             ->where(
@@ -46,7 +45,10 @@ class Xau extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-//            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
+            $this->new_page_key_call = $this->option->_option_month;
+            $this->new_page_key_put = $this->option->_option_month;
+
+            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 
             $max_oi_call = 0;
@@ -76,56 +78,64 @@ class Xau extends Base
 
         return true;
     }
+
+    protected function prepareItemFromParse($key, $data)
+    {
+        $result = array();
+
+        switch ($key) {
+            case 0:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 6) {
+                    $result = $data_arr;
+                } else {
+                    $result = array_merge($data_arr, array('+'));
+                }
+
+                break;
+
+            case 1:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                } else {
+
+                }
+
+                break;
+
+            case 2:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
+
+                break;
+
+            case 3:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 6) {
+                    $result = $data_arr;
+                }
+
+                break;
+        }
+
+        return $result;
+    }
     
     protected function prepareArrayFromPdf($data)
     {
-        $strike = null;
-        $reciprocal = null;
-        $volume = null;
-        $oi = null;
-        $coi = null;
-        $delta = null;
-        $cvs = null;
-        $cvs_balance = null;
-        $print = null;
-
-        if (strpos($data[count($data) - 6], '----') === false) {
-            $data[count($data) - 6] = '----'.$data[count($data) - 6];
-
-            if (isset($data[count($data) - 7])) {
-                unset($data[count($data) - 7]);
-            }
-
-            $data = array_values($data);
-        }
-
-        $data[count($data) - 6] = str_replace('----', '', $data[count($data) - 6]);
-        if (strlen($data[count($data) - 6]) > 4) {
-            $data = array_merge(array_slice($data, 0, 7), array(substr($data[count($data) - 6], (strlen($data[count($data) - 6]) - 4))), array_slice($data, 8));
-        }
-        
-        $reciprocal = $data[3];
-        $oi = $data[4];
-
-        // приведем к общему виду
-        $data[6] = str_replace('----', '.0000', $data[6]);
-        if (strpos($data[6], 'UNCH') !== false) {
-            $coi = 0;
-            $delta = (float)str_replace('UNCH', '', $data[6]);
-        } else {
-            $coi_arr = explode('.', $data[6]);
-
-            if (count($coi_arr) == 2) {
-                // приведем к общему виду
-                $data[5] = str_replace('UNCH', '1', $data[5]);
-                
-                $coi = ($data[5] / abs($data[5])) * $coi_arr[0];
-                $delta = (float)('.'.$coi_arr[1]);
-            }
-        }
-        
-        $strike = (int)str_replace('----', '', $data[count($data) - 6]);
-        $volume = (int)$data[count($data)-2];
+        $strike = (int)$data[10];
+        $oi = (int)$data[4];
+        $coi = (($data[5] == '+') ? 1 : -1 )*(int)$data[7];
+        $delta = (float)$data[8];
+        $reciprocal = (float)$data[3];
+        $volume = (int)$data[14];
 
         return array(
             'strike' => $strike,
@@ -134,9 +144,9 @@ class Xau extends Base
             'oi' => $oi,
             'coi' => $coi,
             'delta' => $delta,
-            'cvs' => $cvs,
-            'cvs_balance' => $cvs_balance,
-            'print' => $print
+            'cvs' => null,
+            'cvs_balance' => null,
+            'print' => null
         );
     }
 }

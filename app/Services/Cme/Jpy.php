@@ -18,6 +18,9 @@ class Jpy extends Base
     public $end_index_call = 'WKJY-1J-C';
     public $start_index_put = 'JAPAN YEN PUT';
     public $end_index_put = 'WKJY-1J-P';
+
+    public $new_page_key_call = 'JAPAN YEN CALL (';
+    public $new_page_key_put = 'JAPAN YEN PUT (';
     
     public function __construct($date = null)
     {
@@ -76,45 +79,63 @@ class Jpy extends Base
         return true;
     }
 
+    protected function prepareItemFromParse($key, $data)
+    {
+        $result = array();
+
+        switch ($key) {
+            case 0:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 7) {
+                    $result = $data_arr;
+                } else if (count($data_arr) == 6) {
+                    $result = array_merge($data_arr, array('+'));
+                }
+
+                break;
+
+            case 1:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 4) {
+                    $result = $data_arr;
+                } else {
+
+                }
+
+                break;
+
+            case 2:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
+
+                break;
+
+            case 3:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
+
+                break;
+        }
+
+        return $result;
+    }
+
     protected function prepareArrayFromPdf($data)
     {
-        $strike = null;
-        $reciprocal = null;
-        $volume = null;
-        $oi = null;
-        $coi = null;
-        $delta = null;
-        $cvs = null;
-        $cvs_balance = null;
-        $print = null;
-
-//        $data[count($data) - 3] = str_replace('----', '', $data[count($data) - 3]);
-
-        if (strlen($data[count($data) - 3]) > 3) {
-            $data = array_merge(array_slice($data, 0, 10), array(substr($data[count($data) - 3], (strlen($data[count($data) - 3]) - 4), 4)), array_slice($data, 10));
-        }
-
-        $reciprocal = (float)str_replace(array('CAB', '+', '-'), '', $data[4]);
+        $strike = (int)$data[11];
         $oi = (int)$data[5];
-
-        $data[6] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[6]);
-        $data[7] = str_replace('UNCH', '0', $data[7]);
-
-        $coi = ($data[6]/abs($data[6]))*$data[7];
-
-        $strike = (int)str_replace('----', '', $data[count($data) - 3]);
-        
-        if (strpos($data[count($data) - 2], '----') !== false) {
-            $volume = 0;
-            $delta = (float)str_replace('----', '', $data[count($data) - 2]);
-        } else {
-            $volume_arr = explode('.', $data[count($data) - 2]);
-
-            if (count($volume_arr) == 2) {
-                $volume = (int)$volume_arr[0];
-                $delta = (float)('.'.$volume_arr[1]);
-            }
-        }
+        $coi = (($data[6] == '+') ? 1 : -1 )*(int)$data[8];
+        $delta = (float)$data[13];
+        $reciprocal = (float)$data[4];
+        $volume = (int)$data[12];
 
         return array(
             'strike' => $strike,
@@ -123,9 +144,9 @@ class Jpy extends Base
             'oi' => $oi,
             'coi' => $coi,
             'delta' => $delta,
-            'cvs' => $cvs,
-            'cvs_balance' => $cvs_balance,
-            'print' => $print
+            'cvs' => null,
+            'cvs_balance' => null,
+            'print' => null
         );
     }
 }

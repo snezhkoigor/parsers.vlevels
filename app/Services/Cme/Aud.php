@@ -18,6 +18,9 @@ class Aud extends Base
     public $end_index_call = 'AUST DLR C EU';
     public $start_index_put = 'AUST DLR PUT';
     public $end_index_put = 'AUST DLR P EU';
+
+    public $new_page_key_call = 'AUST DLR CALL (';
+    public $new_page_key_put = 'AUST DLR PUT (';
     
     public function __construct($date = null)
     {
@@ -74,67 +77,5 @@ class Aud extends Base
         }
 
         return true;
-    }
-
-    protected function prepareArrayFromPdf($data)
-    {
-        $strike = null;
-        $reciprocal = null;
-        $volume = null;
-        $oi = null;
-        $coi = null;
-        $delta = null;
-        $cvs = null;
-        $cvs_balance = null;
-        $print = null;
-
-//        $data[count($data) - 1] = str_replace('----', '', $data[count($data) - 1]);
-        
-        if (strpos($data[count($data) - 1], '----') === false) {
-//            $data[count($data) - 1] = '----'.$data[count($data) - 1];
-
-            if (isset($data[count($data) - 2])) {
-                unset($data[count($data) - 2]);
-            }
-
-            $data = array_values($data);
-        }
-
-        $reciprocal = (float)str_replace(array('CAB', '+', '-'), '', $data[4]);
-        $oi = (int)$data[6];
-
-        $data[7] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[7]);
-        $data[8] = str_replace('UNCH', '0', $data[8]);
-
-        $coi = ($data[7]/abs($data[7]))*$data[8];
-
-        if (strpos($data[count($data) - 2], '----') !== false) {
-            $delta = 0;
-        } elseif (strpos($data[count($data) - 2], 'A') !== false) {
-            $delta_arr = explode('A', $data[count($data) - 2]);
-
-            if (count($delta_arr) == 2) {
-                $delta = (float)$delta_arr[1];
-            }
-        } else {
-            $delta_arr = explode('.', $data[count($data) - 2]);
-
-            $delta = (float)('.'.$delta_arr[count($delta_arr) - 1]);
-        }
-
-        $strike = (int)str_replace('----', '', $data[count($data) - 1]);
-        $volume = (int)str_replace('----', '', $data[5]);
-
-        return array(
-            'strike' => $strike,
-            'reciprocal' => $reciprocal,
-            'volume' => $volume,
-            'oi' => $oi,
-            'coi' => $coi,
-            'delta' => $delta,
-            'cvs' => $cvs,
-            'cvs_balance' => $cvs_balance,
-            'print' => $print
-        );
     }
 }

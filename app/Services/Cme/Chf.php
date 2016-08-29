@@ -18,6 +18,9 @@ class Chf extends Base
     public $end_index_call = 'WKSF-1S-C';
     public $start_index_put = 'SWISS FRNC PUT';
     public $end_index_put = 'WKSF-1S-P';
+
+    public $new_page_key_call = 'SWISS FRNC CALL (';
+    public $new_page_key_put = 'SWISS FRNC PUT (';
     
     public function __construct($date = null)
     {
@@ -76,60 +79,71 @@ class Chf extends Base
         return true;
     }
 
-    protected function prepareArrayFromPdf($data)
+    protected function prepareItemFromParse($key, $data) 
     {
-        $strike = null;
-        $reciprocal = null;
-        $volume = null;
-        $oi = null;
-        $coi = null;
-        $delta = null;
-        $cvs = null;
-        $cvs_balance = null;
-        $print = null;
+        $result = array();
 
-        if (strpos($data[count($data) - 1], '----') === false) {
-//            $data[count($data) - 1] = '----'.$data[count($data) - 1];
+        switch ($key) {
+            case 0:
+                $data_arr = explode(' ', $data);
+                
+                if (count($data_arr) == 9) {
+                    $result = $data_arr;
+                } else if (count($data_arr) == 8) {
+                    if (in_array($data_arr[count($data_arr) - 1], array('+', '-'))) {
+                        $result = array_merge(array_slice($data_arr, 0, 5), array('+'), array_slice($data_arr, 5, 3));
+                    } else {
+                        $result = array_merge($data_arr, array('+'));
+                    }
+                } else if (count($data_arr) == 7) {
+                    $result = array_merge(array_slice($data_arr, 0, 5), array('+'), array_slice($data_arr, 5, 2), array('+'));
+                } else {
+                    // error
+                }
+
+                break;
             
-            if (isset($data[count($data) - 2])) {
-                unset($data[count($data) - 2]);
-            }
+            case 1:
+                $data_arr = explode(' ', $data);
+                
+                if (count($data_arr) == 4) {
+                    $result = $data_arr;
+                } else {
+                    
+                }
+
+                break;
             
-            $data = array_values($data);
-        }
+            case 2:
+                $data_arr = explode(' ', $data);
 
-        $reciprocal = (float)str_replace('CAB', '', $data[4]);
-        $strike = (int)str_replace('----', '', $data[count($data) - 1]);
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
 
-        if (strpos($data[count($data) - 2], '----') !== false) {
-            $delta = 0;
-        } elseif (strpos($data[count($data) - 2], 'A') !== false) {
-            $delta_arr = explode('A', $data[count($data) - 2]);
+                break;
+            
+            case 3:
+                $data_arr = explode(' ', $data);
 
-            if (count($delta_arr) == 2) {
-                $delta = (float)$delta_arr[1];
-            }
-        } else {
-            $delta_arr = explode('.', $data[count($data) - 2]);
-            $delta = (float)('.'.$delta_arr[count($delta_arr) - 1]);
+                if (count($data_arr) == 1) {
+                    $result = $data_arr;
+                }
+
+                break;
         }
         
-        if (count($data) == 13) {
-            $oi = (int)$data[7];
-
-            $data[8] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[8]);
-            $data[9] = str_replace('UNCH', '0', $data[9]);
-            $coi = ($data[8]/abs($data[8]))*$data[9];
-
-            $volume = (int)str_replace('----', '', $data[6]);
-        } else {
-            $oi = (int)$data[6];
-            $volume = (int)str_replace('----', '', $data[5]);
-
-            $data[7] = str_replace(array('UNCH', 'NEW', '0', '----'), '1', $data[7]);
-            $data[8] = str_replace('UNCH', '0', $data[8]);
-            $coi = ($data[7]/abs($data[7]))*$data[8];
-        }
+        return $result;
+    }
+    
+    protected function prepareArrayFromPdf($data)
+    {
+        $strike = (int)$data[15];
+        $oi = (int)$data[7];
+        $coi = (($data[8] == '+') ? 1 : -1 )*(int)$data[10];
+        $delta = (float)$data[13];
+        $reciprocal = (float)$data[4];
+        $volume = (int)$data[6];
 
         return array(
             'strike' => $strike,
@@ -138,9 +152,9 @@ class Chf extends Base
             'oi' => $oi,
             'coi' => $coi,
             'delta' => $delta,
-            'cvs' => $cvs,
-            'cvs_balance' => $cvs_balance,
-            'print' => $print
+            'cvs' => null,
+            'cvs_balance' => null,
+            'print' => null
         );
     }
 }

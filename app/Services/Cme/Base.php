@@ -619,7 +619,7 @@ class Base
                     }
                 }
             }
-
+var_dump($result);die;
             if (count($result) !== 0) {
                 foreach ($result as $key => $rows) {
                     $strike_data = array();

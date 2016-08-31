@@ -571,7 +571,7 @@ class Base
     {
         $out = array();
         $text = $this->extract($file);
-        var_dump($text);die;
+
         if ($type == self::CME_BULLETIN_TYPE_CALL) {
             $start = strpos($text, $this->start_index_call);
             $end = strpos($text, $this->end_index_call);

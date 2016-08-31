@@ -37,102 +37,153 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('inspire')
-            ->hourly();
-        $schedule->command('demo')
-            ->everyMinute();
+        $schedule->command('getFilesFromFTP')
+            ->when(function() {
+                $result = true;
 
-//        $schedule->command('getFilesFromFTP')
-//            ->before(function () {
-//                if (count(Storage::disk('public')->files(env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/')) != 0) {
-//                    Log::warning('Папка ' . env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/' . ' не пуста. ');
-//                    die;
-//                }
-//            })
-//            ->everyThirtyMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::info('Файлы успешно скопированы в папку ' . env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/');
-//            });
-//
-//        $schedule->command('parseAud')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг AUD');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг AUD');
-//            });
-//
-//        $schedule->command('parseCad')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг CAD');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CAD');
-//            });
-//
-//        $schedule->command('parseChf')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг CHF');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CHF');
-//            });
-//
-//        $schedule->command('parseEur')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг EUR');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг EUR');
-//            });
-//
-//        $schedule->command('parseGbp')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг Gbp');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Gbp');
-//            });
-//
-//        $schedule->command('parseJpy')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг JPY');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг JPY');
-//            });
-//
-//        $schedule->command('parseXau')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг XAU');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU');
-//            });
-//
-//        $schedule->command('getForwardPointsFromFTP')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг Forward points');
-//            })
-//            ->hourly()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points');
-//            });
+                if (count(Storage::disk('public')->files(env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/')) != 0) {
+                    Log::warning('Папка ' . env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/' . ' не пуста. ');
+                    $result = false;
+                }
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг PDF файлов.');
+            });
+
+        $schedule->command('parseAud')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг AUD.');
+            });
+
+        $schedule->command('parseCad')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CAD.');
+            });
+
+        $schedule->command('parseChf')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CHF.');
+            });
+
+        $schedule->command('parseEur')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг EUR.');
+            });
+
+        $schedule->command('parseGbp')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг GBP.');
+            });
+
+        $schedule->command('parseJpy')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг JPY.');
+            });
+
+        $schedule->command('parseXau')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU.');
+            });
+
+        $schedule->command('getForwardPointsFromFTP')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 6) {
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->hourly()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points.');
+            });
     }
 }

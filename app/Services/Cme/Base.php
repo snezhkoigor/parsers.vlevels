@@ -361,7 +361,7 @@ class Base
 
     public function finish($id, $date)
     {
-        Log::info('Завершили парсинг табилцы.', [ 'table' => $this->table_month, 'id' => $id, 'time' => $date ]);
+        Log::info('Завершили парсинг таблицы.', [ 'table' => $this->table_month, 'id' => $id, 'time' => $date ]);
 
         DB::table('cme_options')
             ->where('_id', $id)

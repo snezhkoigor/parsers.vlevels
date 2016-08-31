@@ -109,15 +109,15 @@ class Kernel extends ConsoleKernel
                 Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг JPY');
             });
 
-//        $schedule->command('parseXau')
-//            ->before(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг XAU');
-//            })
-//            ->everyFiveMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU');
-//            });
+        $schedule->command('parseXau')
+            ->before(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Начался парсинг XAU');
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU');
+            });
 
         $schedule->command('getForwardPointsFromFTP')
             ->before(function () {

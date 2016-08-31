@@ -47,6 +47,12 @@ class Kernel extends ConsoleKernel
                 }
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -63,6 +69,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -79,6 +91,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -95,6 +113,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -111,6 +135,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -127,6 +157,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -143,6 +179,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -159,6 +201,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, понедельник.');
+                    }
+
                     $result = false;
                 }
 
@@ -175,6 +223,12 @@ class Kernel extends ConsoleKernel
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 6) {
+                    if (date('w') == 0) {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, воскресение.');
+                    } else {
+                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, суббота.');
+                    }
+
                     $result = false;
                 }
 

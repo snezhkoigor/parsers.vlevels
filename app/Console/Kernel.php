@@ -37,6 +37,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('demo')->everyMinute();
+
         $schedule->command('getFilesFromFTP')
             ->when(function() {
                 $result = true;

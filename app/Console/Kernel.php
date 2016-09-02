@@ -224,7 +224,7 @@ class Kernel extends ConsoleKernel
             ->when(function() {
                 $result = true;
 
-                if (date('w') == 0 || date('w') == 6) {
+                if (date('w') == 6 || date('w') == 0) {
                     if (date('w') == 0) {
                         Log::warning(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, воскресение.');
                     } else {

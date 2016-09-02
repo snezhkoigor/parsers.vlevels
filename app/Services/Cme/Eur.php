@@ -17,7 +17,7 @@ class Eur extends Base
     public $start_index_call = 'EURO FX CALL';
     public $end_index_call = 'EURO FX P (EU)';
     public $start_index_put = 'EURO FX PUT';
-    public $end_index_put = 'TOTALS';
+    public $end_index_put = '** Option prices quoted per';
     
     public $new_page_key_call = 'EURO FX CALL';
     public $new_page_key_put = 'EURO FX PUT';

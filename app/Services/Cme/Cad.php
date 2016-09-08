@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class Cad extends Base
 {
     public $start_index_call = 'CANADA DLR CALL';
-    public $end_index_call = 'WKCD-1C-C';
+    public $end_index_call = '** Option prices quoted';
     public $start_index_put = 'CANADA DLR PUT';
-    public $end_index_put = 'WKCD-1C-P';
+    public $end_index_put = '** Option prices quoted';
     
     public $new_page_key_call = 'CANADA DLR CALL (';
     public $new_page_key_put = 'CANADA DLR PUT (';

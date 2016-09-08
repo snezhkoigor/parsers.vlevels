@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class Chf extends Base
 {
     public $start_index_call = 'SWISS FRNC CALL';
-    public $end_index_call = 'WKSF-1S-C';
+    public $end_index_call = '** Option prices quoted';
     public $start_index_put = 'SWISS FRNC PUT';
-    public $end_index_put = 'WKSF-1S-P';
+    public $end_index_put = '** Option prices quoted';
 
     public $new_page_key_call = 'SWISS FRNC CALL (';
     public $new_page_key_put = 'SWISS FRNC PUT (';

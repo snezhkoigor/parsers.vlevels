@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class Jpy extends Base
 {
     public $start_index_call = 'JAPAN YEN CALL';
-    public $end_index_call = 'WKJY-1J-C';
+    public $end_index_call = '** Option prices quoted';
     public $start_index_put = 'JAPAN YEN PUT';
-    public $end_index_put = 'WKJY-1J-P';
+    public $end_index_put = '** Option prices quoted';
 
     public $new_page_key_call = 'JAPAN YEN CALL (';
     public $new_page_key_put = 'JAPAN YEN PUT (';
@@ -38,7 +38,7 @@ class Jpy extends Base
             )
             ->orderBy('_expiration')
             ->first();
-        
+
         $this->table_day = 'cme_day_'.strtolower($this->pair_with_major);
         $this->table_total = 'cme_bill_'.strtolower($this->pair_with_major).'_total';
         $this->table_month = 'cme_bill_'.strtolower($this->pair_with_major).'_'.strtolower($this->option->_option_month);

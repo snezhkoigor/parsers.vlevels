@@ -11,7 +11,6 @@ namespace App\Services\Cme;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use SGH\PdfBox\PdfBox;
 
 class Base
 {
@@ -33,6 +32,21 @@ class Base
     public $end_index_put = null;
     public $new_page_key_call = null;
     public $new_page_key_put = null;
+    
+    public $month_associations = array(
+        'jan' => '01.01',
+        'feb' => '01.02',
+        'mar' => '01.03',
+        'apr' => '01.04',
+        'may' => '01.05',
+        'jun' => '01.06',
+        'jul' => '01.07',
+        'aug' => '01.08',
+        'sep' => '01.09',
+        'oct' => '01.10',
+        'nov' => '01.11',
+        'dec' => '01.12'
+    );
 
     protected $files;
     protected $pair_with_major;
@@ -367,7 +381,16 @@ class Base
             ->where('_id', $id)
             ->update(['_e_time' => $date]);
     }
-    
+
+    public function getMonths($file)
+    {
+        $text = $this->extract($file);
+
+        if ($text) {
+            var_dump($text);die;
+        }
+    }
+
     protected function extract($file)
     {
         $pdfToText = \XPDF\PdfToText::create();

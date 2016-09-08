@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class Gbp extends Base
 {
     public $start_index_call = 'BRIT PND CALL';
-    public $end_index_call = 'BRIT PND-C EU';
+    public $end_index_call = '** Option prices quoted';
     public $start_index_put = 'BRIT PND PUT';
-    public $end_index_put = 'BRIT PND-P EU';
+    public $end_index_put = '** Option prices quoted';
 
     public $new_page_key_call = 'BRIT PND CALL';
     public $new_page_key_put = 'BRIT PND PUT';

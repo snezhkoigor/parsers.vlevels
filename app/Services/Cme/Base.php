@@ -32,6 +32,8 @@ class Base
     public $end_index_put = null;
     public $new_page_key_call = null;
     public $new_page_key_put = null;
+    public $month_start = null;
+    public $month_end = null;
     
     public $month_associations = array(
         'jan' => '01.01',
@@ -382,13 +384,35 @@ class Base
             ->update(['_e_time' => $date]);
     }
 
-    public function getMonths($file)
+    public function getMonths($file, $current_option_month)
     {
+        $months = array();
         $text = $this->extract($file);
 
         if ($text) {
-            var_dump($text);die;
+            $start = strpos($text, $this->month_start);
+            $end = strpos($text, $this->month_end);
+
+            if ($start && $end) {
+                $text = substr($text, $start, $end - $start);
+                $text = str_replace(array($this->month_start, $this->month_end), '', $text);
+                
+                if ($text) {
+                    $text_arr = explode(' ', $text);
+                    
+                    if (count($text_arr) !== 0) {
+                        foreach ($text_arr as $month) {
+                            $month = trim($month);
+                            if ($current_option_month !== $month) {
+                                $months[] = $month;
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        return $months;
     }
 
     protected function extract($file)

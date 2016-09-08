@@ -22,6 +22,9 @@ class Cad extends Base
     public $new_page_key_call = 'CANADA DLR CALL (';
     public $new_page_key_put = 'CANADA DLR PUT (';
 
+    public $month_start = 'PRELIMINARY';
+    public $month_end = 'CANADA DLR FUT';
+    
     public function __construct($date = null)
     {
         $this->pair = self::PAIR_CAD;
@@ -48,6 +51,9 @@ class Cad extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
+//            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
+//            var_dump($this->option->_option_month, $arr);die;
+
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 

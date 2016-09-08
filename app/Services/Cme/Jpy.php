@@ -21,6 +21,9 @@ class Jpy extends Base
 
     public $new_page_key_call = 'JAPAN YEN CALL (';
     public $new_page_key_put = 'JAPAN YEN PUT (';
+
+    public $month_start = 'PRELIMINARY';
+    public $month_end = 'JAPAN YEN FUT';
     
     public function __construct($date = null)
     {
@@ -48,6 +51,9 @@ class Jpy extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
+//            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
+//            var_dump($this->option->_option_month, $arr);die;
+            
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
 

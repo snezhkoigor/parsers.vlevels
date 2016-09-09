@@ -22,7 +22,6 @@ class Chf extends Base
     public $new_page_key_call = 'SWISS FRNC CALL (';
     public $new_page_key_put = 'SWISS FRNC PUT (';
 
-    public $month_start = 'PRELIMINARY';
     public $month_end = 'SWISS FRNC FUT';
 
     public function __construct($date = null)
@@ -51,8 +50,8 @@ class Chf extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-//            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
-//            var_dump($this->option->_option_month, $arr);die;
+            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
+            var_dump($this->option->_option_month, $arr);die;
 
             $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
             $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);

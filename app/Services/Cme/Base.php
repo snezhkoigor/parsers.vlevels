@@ -35,19 +35,19 @@ class Base
     public $month_start = null;
     public $month_end = null;
     
-    public $month_associations = array(
-        'jan' => '01.01',
-        'feb' => '01.02',
-        'mar' => '01.03',
-        'apr' => '01.04',
-        'may' => '01.05',
-        'jun' => '01.06',
-        'jul' => '01.07',
-        'aug' => '01.08',
-        'sep' => '01.09',
-        'oct' => '01.10',
-        'nov' => '01.11',
-        'dec' => '01.12'
+    public static $month_associations = array(
+        'jan' => '01',
+        'feb' => '02',
+        'mar' => '03',
+        'apr' => '04',
+        'may' => '05',
+        'jun' => '06',
+        'jul' => '07',
+        'aug' => '08',
+        'sep' => '09',
+        'oct' => '10',
+        'nov' => '11',
+        'dec' => '12'
     );
 
     protected $files;
@@ -214,7 +214,7 @@ class Base
             Log::warning('Нет суммарных данных.', [ 'table' => $this->table_total, 'data' => json_encode($total), 'option_id' => $id, 'date' => $date, 'put' => json_encode($data_put), 'call' => json_encode($data_call) ]);
         }
     }
-
+    
     public function addCmeData($date, $data, $type)
     {
         $max_oi = 0;
@@ -390,21 +390,30 @@ class Base
         $text = $this->extract($file);
 
         if ($text) {
-            $start = strpos($text, $this->month_start);
+            $start = strpos($text, $current_option_month);
             $end = strpos($text, $this->month_end);
 
             if ($start && $end) {
                 $text = substr($text, $start, $end - $start);
                 $text = str_replace(array($this->month_start, $this->month_end), '', $text);
-                
+         
                 if ($text) {
                     $text_arr = explode(' ', $text);
-                    
+
                     if (count($text_arr) !== 0) {
+                        $current_month_time = strtotime(preg_replace('/[a-zA-Z]/', '', $current_option_month) . '-' . self::$month_associations[preg_replace('/[0-9]/', '', strtolower($current_option_month))] . '-01');
+                        
                         foreach ($text_arr as $month) {
                             $month = trim($month);
+                            
                             if ($current_option_month !== $month) {
-                                $months[] = $month;
+                                $year = preg_replace('/[a-zA-Z]/', '', $month);
+                                $number = preg_replace('/[0-9]/', '', strtolower($month));
+
+                                $month_time = strtotime($year . '-' . self::$month_associations[$number] . '-01');
+                                if ($month_time > $current_month_time) {
+                                    $months[] = $month;
+                                }
                             }
                         }
                     }

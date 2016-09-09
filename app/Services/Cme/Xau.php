@@ -19,7 +19,6 @@ class Xau extends Base
     public $start_index_call = 'OG CALL COMEX GOLD OPTIONS';
     public $end_index_call = 'SO CALL COMEX SILVER OPTIONS';
 
-    public $month_start = 'PRELIMINARY';
     public $month_end = 'HX CALL';
 
     public function __construct($date = null)
@@ -48,8 +47,8 @@ class Xau extends Base
     public function parse()
     {
         if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-//            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
-//            var_dump($this->option->_option_month, $arr);die;
+            $arr = $this->getMonths($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month);
+            var_dump($this->option->_option_month, $arr);die;
 
             $this->new_page_key_call = $this->option->_option_month;
             $this->new_page_key_put = $this->option->_option_month;

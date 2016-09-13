@@ -30,5 +30,25 @@ class ParseXau extends Command
     {
         $xau = new Xau();
         $xau->parse();
+
+        if (($files = $xau->getFiles()) && ($option = $xau->getOption())) {
+            $months = $xau->getMonths($xau->getCmeFilePath() . $files[$xau::CME_BULLETIN_TYPE_CALL], $option->_option_month);
+
+            if (count($months) !== 0) {
+                foreach ($months as $month) {
+                    $option_by_month = $xau->getOptionDataByMonth($month);
+
+                    if (!empty($option_by_month)) {
+                        $other_month = new Xau(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month->update_day_table = false;
+
+                        $other_month->parse();
+
+                        unset($option_by_month);
+                    }
+
+                }
+            }
+        }
     }
 }

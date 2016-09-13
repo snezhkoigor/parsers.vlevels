@@ -30,5 +30,25 @@ class ParseEur extends Command
     {
         $eur = new Eur();
         $eur->parse();
+
+        if (($files = $eur->getFiles()) && ($option = $eur->getOption())) {
+            $months = $eur->getMonths($eur->getCmeFilePath() . $files[$eur::CME_BULLETIN_TYPE_CALL], $option->_option_month);
+
+            if (count($months) !== 0) {
+                foreach ($months as $month) {
+                    $option_by_month = $eur->getOptionDataByMonth($month);
+
+                    if (!empty($option_by_month)) {
+                        $other_month = new Eur(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month->update_day_table = false;
+
+                        $other_month->parse();
+
+                        unset($option_by_month);
+                    }
+
+                }
+            }
+        }
     }
 }

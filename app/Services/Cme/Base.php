@@ -34,6 +34,7 @@ class Base
     public $new_page_key_put = null;
     public $month_start = null;
     public $month_end = null;
+    public $update_day_table = true;
     
     public static $month_associations = array(
         'jan' => '01',
@@ -54,6 +55,7 @@ class Base
     protected $pair_with_major;
     protected $option;
     protected $option_date;
+    protected $pdf_files_date;
     protected $table;
     protected $table_day;
     protected $table_total;
@@ -75,8 +77,43 @@ class Base
 
         $this->files = $this->getFilesAssociations($this->pair);
         $this->table = 'cme_options';
+
+        // если понедельник, то берем пятницу прошлую
+        if (date('w') == 1) {
+            $this->pdf_files_date = strtotime(date("d-m-Y", (time() - 86400*3)));
+        } else {
+            $this->pdf_files_date = strtotime(date("d-m-Y", (time() - 86400)));
+        }
     }
 
+    public function getOptionDataByMonth($month)
+    {
+        return DB::table($this->table)
+            ->where(
+                [
+                    ['_option_month', '=', $month],
+                    ['_symbol', '=', $this->pair_with_major]
+                ]
+            )
+            ->orderBy('_expiration')
+            ->first();
+    }
+    
+    public function getFiles()
+    {
+        return $this->files;
+    }
+    
+    public function getCmeFilePath()
+    {
+        return $this->cme_file_path;
+    }
+
+    public function getOption()
+    {
+        return $this->option;
+    }
+    
     public function getFilesAssociations($pair)
     {
         $result = null;
@@ -375,8 +412,10 @@ class Base
         }
     }
 
-    public function finish($id, $date)
+    public function finish($id)
     {
+        $date = strtotime(date('Y-m-d'));
+
         Log::info('Завершили парсинг таблицы.', [ 'table' => $this->table_month, 'id' => $id, 'time' => $date ]);
 
         DB::table('cme_options')
@@ -424,6 +463,48 @@ class Base
         return $months;
     }
 
+    public function parse()
+    {
+        if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
+            $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
+            $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
+
+            $max_oi_call = 0;
+            $max_oi_put = 0;
+            if (count($data_call) !== 0) {
+                $max_oi_call = $this->addCmeData($this->pdf_files_date, $data_call, self::CME_BULLETIN_TYPE_CALL);
+            } else {
+                Log::warning('Не смогли получить основные данные дефолтным методом.', [ 'type' => self::CME_BULLETIN_TYPE_CALL, 'pair' => $this->pair, 'date' => $this->pdf_files_date ]);
+            }
+            if (count($data_put) !== 0) {
+                $max_oi_put = $this->addCmeData($this->pdf_files_date, $data_put, self::CME_BULLETIN_TYPE_PUT);
+            } else {
+                Log::warning('Не смогли получить основные данные дефолтным методом.', [ 'type' => self::CME_BULLETIN_TYPE_PUT, 'pair' => $this->pair, 'date' => $this->pdf_files_date ]);
+            }
+
+            if (count($data_call) && count($data_put)) {
+                if (DB::table($this->table_month)->where('_date', '=', $this->pdf_files_date)->first()) {
+                    $this->addTotalCmeData($this->option->_id, $this->pdf_files_date, $data_call, $data_put);
+                    $this->updatePairPrints($this->pdf_files_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
+
+                    if ($this->update_day_table === true) {
+                        $this->updateCmeDayTable($this->pdf_files_date, $data_call, $data_put, $this->pair_with_major);
+                    }
+
+                    $this->updateCvs($this->pdf_files_date, $data_call, $data_put);
+                }
+
+                $this->finish($this->option->_id);
+            } else {
+                Log::warning('Нет данных PUT и CALL.', [ 'pair' => $this->pair, 'date' => $this->option_date ]);
+            }
+        } else {
+            Log::warning('Нет файлов на дату.', [ 'pair' => $this->pair, 'date' => $this->option_date ]);
+        }
+
+        return true;
+    }
+    
     protected function extract($file)
     {
         $pdfToText = \XPDF\PdfToText::create();
@@ -628,68 +709,68 @@ class Base
         $out = array();
         $text = $this->extract($file);
 
-        if ($type == self::CME_BULLETIN_TYPE_CALL) {
-            $start = strpos($text, $this->start_index_call);
-            $end = strpos($text, $this->end_index_call);
-            $page_key = $this->new_page_key_call;
-        } else {
-            $start = strpos($text, $this->start_index_put);
-            $end = strpos($text, $this->end_index_put);
-            $page_key = $this->new_page_key_put;
-        }
+        $start = strpos($text, $type == self::CME_BULLETIN_TYPE_CALL ? $this->start_index_call : $this->start_index_put);
+        $text = substr($text, $start);
 
-        if ($start && $end) {
-            $text = substr($text, $start, $end - $start);
+        $end = strpos($text, $type == self::CME_BULLETIN_TYPE_CALL ? $this->end_index_call : $this->end_index_put);
+        $text = substr($text, 0, $end);
+
+        $page_key = $type == self::CME_BULLETIN_TYPE_CALL ? $this->new_page_key_call : $this->new_page_key_put;
+
+        if ($text) {
             $start = strpos($text, $month);
-            $text = substr($text, $start + strlen($month));
-            $end = strpos($text, 'TOTAL');
-            // получили нужный текст
-            $text = substr($text, 0, $end);
+            
+            if ($start) {
+                $text = substr($text, $start + strlen($month));
+                $end = strpos($text, 'TOTAL');
+                // получили нужный текст
+                $text = substr($text, 0, $end);
 
-            // теперь надо его избавить от страниц
-            while ($pos = strpos($text, $page_key)) {
-                $start_pos = strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT');
-                
-                if ($start_pos === false) {
-                    $start_pos = $pos;
-                }
+                // теперь надо его избавить от страниц
+                while ($pos = strpos($text, $page_key)) {
+                    $start_pos = strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT');
 
-                $text = substr($text, 0, $start_pos) . substr($text, $pos + strlen($page_key));
-            }
-
-            $pieces = explode("\n", $text);
-
-            $parser_element_key = 1;
-            $strike_key = 0;
-
-            $result = array();
-            foreach ($pieces as $item_key => $item) {
-                if ($item !== '' && $item !== '+' && $item !== '-' && strpos($item, 'FUTURES SETT.') === false) {
-                    $result[$strike_key][] = $item;
-
-                    if ($parser_element_key == 4) {
-                        $strike_key++;
-                        $parser_element_key = 1;
-                    } else {
-                        $parser_element_key++;
+                    if ($start_pos === false) {
+                        $start_pos = $pos;
                     }
+
+                    $text = substr($text, 0, $start_pos) . substr($text, $pos + strlen($page_key));
                 }
-            }
 
-            if (count($result) !== 0) {
-                foreach ($result as $key => $rows) {
-                    $strike_data = array();
-                    foreach ($rows as $row_key => $row) {
-                        $row_arr = $this->prepareItemFromParse($row_key, $row);
+                $pieces = explode("\n", $text);
 
-                        if (count($row_arr) !== 0) {
-                            foreach ($row_arr as $row_arr_key => $item) {
-                                $strike_data[] = trim($item);
-                            }
+                $parser_element_key = 1;
+                $strike_key = 0;
+
+                $result = array();
+                foreach ($pieces as $item_key => $item) {
+                    if (!in_array($item, array($month, '', '+', '-')) && strpos($item, 'FUTURES SETT.') === false) {
+                        $result[$strike_key][] = $item;
+
+                        if ($parser_element_key == 4) {
+                            $strike_key++;
+                            $parser_element_key = 1;
+                        } else {
+                            $parser_element_key++;
                         }
                     }
+                }
 
-                    $out[] = $this->prepareArrayFromPdf($strike_data);
+                if (count($result) !== 0) {
+                    foreach ($result as $key => $rows) {
+                        $strike_data = array();
+                        foreach ($rows as $row_key => $row) {
+                            $row_arr = $this->prepareItemFromParse($row_key, $row);
+
+                            if (count($row_arr) !== 0) {
+                                foreach ($row_arr as $row_arr_key => $item) {
+                                    $strike_data[] = trim($item);
+                                }
+                            }
+                        }
+
+                        $out[] = $this->prepareArrayFromPdf($strike_data);
+                    }
                 }
             }
         }

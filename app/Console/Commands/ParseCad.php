@@ -30,5 +30,25 @@ class ParseCad extends Command
     {
         $cad = new Cad();
         $cad->parse();
+
+        if (($files = $cad->getFiles()) && ($option = $cad->getOption())) {
+            $months = $cad->getMonths($cad->getCmeFilePath() . $files[$cad::CME_BULLETIN_TYPE_CALL], $option->_option_month);
+
+            if (count($months) !== 0) {
+                foreach ($months as $month) {
+                    $option_by_month = $cad->getOptionDataByMonth($month);
+
+                    if (!empty($option_by_month)) {
+                        $other_month = new Cad(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month->update_day_table = false;
+
+                        $other_month->parse();
+
+                        unset($option_by_month);
+                    }
+
+                }
+            }
+        }
     }
 }

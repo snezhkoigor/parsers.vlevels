@@ -30,5 +30,24 @@ class ParseJpy extends Command
     {
         $jpy = new Jpy();
         $jpy->parse();
+
+        if (($files = $jpy->getFiles()) && ($option = $jpy->getOption())) {
+            $months = $jpy->getMonths($jpy->getCmeFilePath() . $files[$jpy::CME_BULLETIN_TYPE_CALL], $option->_option_month);
+
+            if (count($months) !== 0) {
+                foreach ($months as $month) {
+                    $option_by_month = $jpy->getOptionDataByMonth($month);
+
+                    if (!empty($option_by_month)) {
+                        $other_month = new Jpy(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month->update_day_table = false;
+
+                        $other_month->parse();
+
+                        unset($option_by_month);
+                    }
+                }
+            }
+        }
     }
 }

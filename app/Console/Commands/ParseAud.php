@@ -30,10 +30,6 @@ class ParseAud extends Command
      */
     public function handle()
     {
-        Mail::raw('Нет данных PUT и CALL.', function($message) {
-            $message->to('i.s.sergeevich@yandex.ru')->subject('Парсер сломался');
-        });
-        die;
         $aud = new Aud();
         $aud->parse();
 

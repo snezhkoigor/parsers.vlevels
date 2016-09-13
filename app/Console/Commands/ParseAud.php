@@ -3,9 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Aud;
-use App\Services\Cme\Base;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 class ParseAud extends Command
 {

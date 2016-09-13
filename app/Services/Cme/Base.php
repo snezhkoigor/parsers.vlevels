@@ -10,6 +10,7 @@ namespace App\Services\Cme;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 class Base
@@ -35,6 +36,8 @@ class Base
     public $month_start = null;
     public $month_end = null;
     public $update_day_table = true;
+
+    public static $email = 'i.s.sergeevich@yandex.ru';
     
     public static $month_associations = array(
         'jan' => '01',
@@ -496,6 +499,10 @@ class Base
 
                 $this->finish($this->option->_id);
             } else {
+                Mail::raw('Нет данных PUT и CALL: pair - ' . $this->pair . ', date - ' . $this->option_date . ', pdf_files_date - ' . $this->pdf_files_date, function($message) {
+                    $message->to(self::$email)->subject('Парсер сломался');
+                });
+
                 Log::warning('Нет данных PUT и CALL.', [ 'pair' => $this->pair, 'date' => $this->option_date ]);
             }
         } else {

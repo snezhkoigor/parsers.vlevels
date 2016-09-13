@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Aud;
+use App\Services\Cme\Base;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class ParseAud extends Command
 {
@@ -28,6 +30,10 @@ class ParseAud extends Command
      */
     public function handle()
     {
+        Mail::raw('Нет данных PUT и CALL.', function($message) {
+            $message->to('i.s.sergeevich@yandex.ru')->subject('Парсер сломался');
+        });
+        die;
         $aud = new Aud();
         $aud->parse();
 
@@ -46,7 +52,6 @@ class ParseAud extends Command
 
                         unset($option_by_month);
                     }
-                    
                 }
             }
         }

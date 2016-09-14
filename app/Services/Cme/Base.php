@@ -424,7 +424,7 @@ class Base
 
         DB::table('cme_options')
             ->where('_id', $id)
-            ->update(['_e_time' => $date]);
+            ->update(['_e_time' => $this->pdf_files_date]);
     }
 
     public function getMonths($file, $current_option_month)

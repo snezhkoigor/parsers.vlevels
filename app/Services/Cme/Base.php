@@ -500,9 +500,9 @@ class Base
 
                 $this->finish($this->option->_id);
             } else {
-                Mail::raw('Нет данных PUT и CALL: pair - ' . $this->pair . ', date - ' . date('d.m.Y', $this->option_date) . ', pdf_files_date - ' . date('d.m.Y', $this->pdf_files_date), function($message) {
-                    $message->to(self::$email)->subject('Парсер сломался');
-                });
+//                Mail::raw('Нет данных PUT и CALL: pair - ' . $this->pair . ', date - ' . date('d.m.Y', $this->option_date) . ', pdf_files_date - ' . date('d.m.Y', $this->pdf_files_date), function($message) {
+//                    $message->to(self::$email)->subject('Парсер сломался');
+//                });
 
                 Log::warning('Нет данных PUT и CALL.', [ 'pair' => $this->pair, 'date' => $this->option_date ]);
             }

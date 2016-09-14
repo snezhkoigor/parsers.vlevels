@@ -29,7 +29,6 @@ class ParseGbp extends Command
     public function handle()
     {
         $gbp = new Gbp();
-        $gbp->parse();
 
         if (($files = $gbp->getFiles()) && ($option = $gbp->getOption())) {
             $months = $gbp->getMonths($gbp->getCmeFilePath() . $files[$gbp::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -46,7 +45,6 @@ class ParseGbp extends Command
 
                         unset($option_by_month);
                     }
-
                 }
             }
         }

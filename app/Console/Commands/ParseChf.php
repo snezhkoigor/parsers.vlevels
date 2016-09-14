@@ -29,7 +29,6 @@ class ParseChf extends Command
     public function handle()
     {
         $chf = new Chf();
-        $chf->parse();
 
         if (($files = $chf->getFiles()) && ($option = $chf->getOption())) {
             $months = $chf->getMonths($chf->getCmeFilePath() . $files[$chf::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -46,7 +45,6 @@ class ParseChf extends Command
 
                         unset($option_by_month);
                     }
-
                 }
             }
         }

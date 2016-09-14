@@ -29,7 +29,6 @@ class ParseCad extends Command
     public function handle()
     {
         $cad = new Cad();
-        $cad->parse();
 
         if (($files = $cad->getFiles()) && ($option = $cad->getOption())) {
             $months = $cad->getMonths($cad->getCmeFilePath() . $files[$cad::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -46,7 +45,6 @@ class ParseCad extends Command
 
                         unset($option_by_month);
                     }
-
                 }
             }
         }

@@ -29,7 +29,6 @@ class ParseJpy extends Command
     public function handle()
     {
         $jpy = new Jpy();
-        $jpy->parse();
 
         if (($files = $jpy->getFiles()) && ($option = $jpy->getOption())) {
             $months = $jpy->getMonths($jpy->getCmeFilePath() . $files[$jpy::CME_BULLETIN_TYPE_CALL], $option->_option_month);

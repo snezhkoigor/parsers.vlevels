@@ -29,7 +29,6 @@ class ParseXau extends Command
     public function handle()
     {
         $xau = new Xau();
-        $xau->parse();
 
         if (($files = $xau->getFiles()) && ($option = $xau->getOption())) {
             $months = $xau->getMonths($xau->getCmeFilePath() . $files[$xau::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -46,7 +45,6 @@ class ParseXau extends Command
 
                         unset($option_by_month);
                     }
-
                 }
             }
         }

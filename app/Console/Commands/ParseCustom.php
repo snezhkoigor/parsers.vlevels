@@ -3,23 +3,24 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Aud;
+use App\Services\Cme\Base;
 use Illuminate\Console\Command;
 
-class ParseAud extends Command
+class ParseCustom extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'parseAud';
+    protected $signature = 'parseCustom {instrument : without USD (ex: aud)} {date : ex. 2016-01-01}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Parse information from *.pdf file by AUD pair';
+    protected $description = 'Parse information from *.pdf file by custom pair and date';
 
     /**
      * Execute the console command.
@@ -28,7 +29,23 @@ class ParseAud extends Command
      */
     public function handle()
     {
+        $instrument = strtoupper($this->argument('instrument'));
+        $pdf_files_date = strtotime($this->argument('date'));
+
+        if (!empty($instrument) && !empty($pdf_files_date)) {
+            $pair_obj = null;
+
+            switch ($instrument) {
+                case Base::PAIR_AUD:
+                    
+                    
+                    break;
+            }
+        }
+
+
         $aud = new Aud();
+        $aud->parse();
 
         if (($files = $aud->getFiles()) && ($option = $aud->getOption())) {
             $months = $aud->getMonths($aud->getCmeFilePath() . $files[$aud::CME_BULLETIN_TYPE_CALL], $option->_option_month);

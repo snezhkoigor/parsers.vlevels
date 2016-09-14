@@ -23,12 +23,12 @@ class Jpy extends Base
     public $new_page_key_put = 'JAPAN YEN PUT (';
 
     public $month_end = 'JAPAN YEN FUT';
-    
-    public function __construct($date = null)
+
+    public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_JPY;
 
-        parent::__construct($date);
+        parent::__construct($option_date, $pdf_files_date);
         
         $this->pair_with_major = self::PAIR_USD.self::PAIR_JPY;
         $this->option = DB::table($this->table)

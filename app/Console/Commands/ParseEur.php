@@ -29,7 +29,6 @@ class ParseEur extends Command
     public function handle()
     {
         $eur = new Eur();
-        $eur->parse();
 
         if (($files = $eur->getFiles()) && ($option = $eur->getOption())) {
             $months = $eur->getMonths($eur->getCmeFilePath() . $files[$eur::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -46,7 +45,6 @@ class ParseEur extends Command
 
                         unset($option_by_month);
                     }
-
                 }
             }
         }

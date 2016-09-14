@@ -23,12 +23,12 @@ class Gbp extends Base
     public $new_page_key_put = 'BRIT PND PUT';
 
     public $month_end = 'BRIT PND OPT';
-    
-    public function __construct($date = null)
+
+    public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_GBP;
 
-        parent::__construct($date);
+        parent::__construct($option_date, $pdf_files_date);
         
         $this->pair_with_major = self::PAIR_GBP.self::PAIR_USD;
         $this->option = DB::table($this->table)

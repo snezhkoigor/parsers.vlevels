@@ -282,6 +282,7 @@ class Base
 
                 if (count($this_date_cme_data) === 0) {
                     $data_for_insert[] = array(
+                        '_option' => $this->option->_id,
                         '_date' => $date,
                         '_type' => ($type == self::CME_BULLETIN_TYPE_CALL ? 0 : 1),
                         '_strike' => $item['strike'],
@@ -524,6 +525,7 @@ class Base
 
         Schema::create($this->table_month, function($table) {
             $table->increments('_id');
+            $table->integer('_option');
             $table->integer('_date');
             $table->integer('_type');
             $table->integer('_strike');

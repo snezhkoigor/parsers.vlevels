@@ -11,7 +11,6 @@ use App\Services\Cme\Gbp;
 use App\Services\Cme\Jpy;
 use App\Services\Cme\Xau;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class ParseCustomAud extends Command
 {
@@ -46,19 +45,9 @@ class ParseCustomAud extends Command
 
                 if (count($months) !== 0) {
                     foreach ($months as $month) {
-                        $option_by_month = DB::table('cme_options')
-                            ->where(
-                                [
-                                    ['_option_month', '=', $month],
-                                    ['_symbol', '=', Base::PAIR_AUD.Base::PAIR_USD]
-                                ]
-                            )
-                            ->orderBy('_expiration')
-                            ->first();
+                        $option_by_month = $aud->getOptionDataByMonth($month);
 
                         if (!empty($option_by_month)) {
-                            var_dump($option_by_month->_expiration, $pdf_files_date);die;
-                            
                             $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
 var_dump($other_month);die;
                             if ($option->_option_month != $option_by_month->_option_month) {

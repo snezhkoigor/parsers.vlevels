@@ -11,6 +11,7 @@ use App\Services\Cme\Gbp;
 use App\Services\Cme\Jpy;
 use App\Services\Cme\Xau;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class ParseCustomAud extends Command
 {

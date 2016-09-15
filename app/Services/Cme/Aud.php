@@ -29,7 +29,7 @@ class Aud extends Base
         $this->pair = self::PAIR_AUD;
 
         parent::__construct($option_date, $pdf_files_date);
-        var_dump($this->option_date);die;
+
         $this->pair_with_major = self::PAIR_AUD.self::PAIR_USD;
         $this->option = DB::table($this->table)
             ->where(
@@ -40,7 +40,7 @@ class Aud extends Base
             )
             ->orderBy('_expiration')
             ->first();
-
+        var_dump($this->option);die;
         $this->table_day = 'cme_day_'.strtolower($this->pair_with_major);
         $this->table_total = 'cme_bill_'.strtolower($this->pair_with_major).'_total';
         $this->table_month = 'cme_bill_'.strtolower($this->pair_with_major).'_'.strtolower($this->option->_option_month);

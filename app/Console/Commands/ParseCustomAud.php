@@ -49,7 +49,7 @@ class ParseCustomAud extends Command
 
                         if (!empty($option_by_month)) {
                             $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
-var_dump($other_month);die;
+var_dump($other_month, new Aud(1475845200, '2016-09-12'));die;
                             if ($option->_option_month != $option_by_month->_option_month) {
                                 $other_month->update_day_table = false;
                             }

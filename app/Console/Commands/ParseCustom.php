@@ -126,7 +126,7 @@ class ParseCustom extends Command
 
                                 break;
                         }
-
+var_dump($other_month);die;
                         if ($other_month) {
                             if ($option->_option_month != $option_by_month->_option_month) {
                                 $other_month->update_day_table = false;

@@ -24,17 +24,17 @@ class Chf extends Base
 
     public $month_end = 'SWISS FRNC FUT';
 
-    public function __construct($pdf_files_date = null, $pdf_files_date = null)
+    public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_CHF;
 
-        parent::__construct($pdf_files_date, $pdf_files_date);
+        parent::__construct($option_date, $pdf_files_date);
         
         $this->pair_with_major = self::PAIR_USD.self::PAIR_CHF;
         $this->option = DB::table($this->table)
             ->where(
                 [
-                    ['_expiration', '>', $this->option_date],
+                    ['_expiration', '>=', $this->option_date],
                     ['_symbol', '=', $this->pair_with_major]
                 ]
             )

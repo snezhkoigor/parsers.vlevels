@@ -34,7 +34,7 @@ class Aud extends Base
         $this->option = DB::table($this->table)
             ->where(
                 [
-                    ['_expiration', '>', $this->option_date],
+                    ['_expiration', '>=', $this->option_date],
                     ['_symbol', '=', $this->pair_with_major]
                 ]
             )

@@ -38,7 +38,7 @@ class ParseCad extends Command
                     $option_by_month = $cad->getOptionDataByMonth($month);
 
                     if (!empty($option_by_month)) {
-                        $other_month = new Cad(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month = new Cad($option_by_month->_expiration);
 
                         if ($option->_option_month != $option_by_month->_option_month) {
                             $other_month->update_day_table = false;

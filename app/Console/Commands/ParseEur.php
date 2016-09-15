@@ -38,7 +38,7 @@ class ParseEur extends Command
                     $option_by_month = $eur->getOptionDataByMonth($month);
 
                     if (!empty($option_by_month)) {
-                        $other_month = new Eur(strtotime("-1 DAY", $option_by_month->_expiration));
+                        $other_month = new Eur($option_by_month->_expiration);
 
                         if ($option->_option_month != $option_by_month->_option_month) {
                             $other_month->update_day_table = false;

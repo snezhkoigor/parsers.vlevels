@@ -69,12 +69,13 @@ class Base
 
     public function __construct($option_date = null, $pdf_files_date = null) {
         if (empty($option_date)) {
-            // если понедельник, то берем пятницу прошлую
-            if (date('w') == 1) {
-                $this->option_date = strtotime(date("d-m-Y", (time() - 86400*3)));
-            } else {
-                $this->option_date = strtotime(date("d-m-Y", (time() - 86400)));
-            }
+            $this->option_date = strtotime(date("d-m-Y", time()));
+//            // если понедельник, то берем пятницу прошлую
+//            if (date('w') == 1) {
+//                $this->option_date = strtotime(date("d-m-Y", (time() - 86400*3)));
+//            } else {
+//                $this->option_date = strtotime(date("d-m-Y", (time() - 86400)));
+//            }
         } else {
             $this->option_date = is_int($option_date) ? $option_date : strtotime($option_date);
         }
@@ -429,17 +430,18 @@ class Base
         }
     }
 
-    public function finish($id)
+    public function finish($id, $update_e_time = true)
     {
         $date = strtotime(date('Y-m-d'));
 
         Log::info('Завершили парсинг таблицы.', [ 'table' => $this->table_month, 'id' => $id, 'time' => $date ]);
 
-        DB::table('cme_options')
-            ->where('_id', $id)
-            ->update(['_e_time' => $this->pdf_files_date]);
+        if ($update_e_time) {
+            DB::table('cme_options')
+                ->where('_id', $id)
+                ->update(['_e_time' => $this->pdf_files_date]);
+        }
 
-        
         DB::table($this->table_parser_settings)
             ->insert(
                 [
@@ -489,7 +491,7 @@ class Base
         return $months;
     }
 
-    public function parse()
+    public function parse($update_e_time = true)
     {
         $parser_info = DB::table($this->table_parser_settings)
             ->where(
@@ -531,7 +533,7 @@ class Base
                         $this->updateCvs($this->pdf_files_date, $data_call, $data_put);
                     }
 
-                    $this->finish($this->option->_id);
+                    $this->finish($this->option->_id, $update_e_time);
                 } else {
 //                    Mail::raw('Нет данных PUT и CALL: pair - ' . $this->pair . ', date - ' . date('d.m.Y', $this->option_date) . ', pdf_files_date - ' . date('d.m.Y', $this->pdf_files_date), function($message) {
 //                        $message->to(self::$email)->subject('Парсер сломался');
@@ -785,14 +787,20 @@ class Base
                 $text = substr($text, 0, $end);
 
                 // теперь надо его избавить от страниц
-                while ($pos = strpos($text, $page_key)) {
+                // вариант, когда на новую страницу не перенеслись данные (например канадец от 2016-09-14)
+                if (strpos($text, $page_key) === false && strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT') !== false) {
                     $start_pos = strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT');
+                    $text = substr($text, 0, $start_pos);
+                } else {
+                    while ($pos = strpos($text, $page_key)) {
+                        $start_pos = strpos($text, 'THE INFORMATION CONTAINED IN THIS REPORT');
 
-                    if ($start_pos === false) {
-                        $start_pos = $pos;
+                        if ($start_pos === false) {
+                            $start_pos = $pos;
+                        }
+
+                        $text = substr($text, 0, $start_pos) . substr($text, $pos + strlen($page_key));
                     }
-
-                    $text = substr($text, 0, $start_pos) . substr($text, $pos + strlen($page_key));
                 }
 
                 $pieces = explode("\n", $text);

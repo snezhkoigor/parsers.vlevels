@@ -90,6 +90,9 @@ class ParseCustom extends Command
                     if (!empty($option_by_month)) {
                         $other_month = null;
 
+                        $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
+                        var_dump($other_month);die;
+
                         switch ($instrument) {
                             case Base::PAIR_AUD:
                                 $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);

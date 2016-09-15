@@ -46,7 +46,7 @@ class ParseCustomAud extends Command
 
                 if (count($months) !== 0) {
                     foreach ($months as $month) {
-                        $option_by_month = DB::table($this->table)
+                        $option_by_month = DB::table('cme_options')
                             ->where(
                                 [
                                     ['_option_month', '=', $month],

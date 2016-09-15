@@ -29,7 +29,7 @@ class Aud extends Base
         $this->pair = self::PAIR_AUD;
 
         parent::__construct($option_date, $pdf_files_date);
-
+        var_dump($this->option_date);die;
         $this->pair_with_major = self::PAIR_AUD.self::PAIR_USD;
         $this->option = DB::table($this->table)
             ->where(

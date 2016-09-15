@@ -87,8 +87,6 @@ class ParseCustom extends Command
                 foreach ($months as $month) {
                     $option_by_month = $pair_obj->getOptionDataByMonth($month);
 
-                    unset($pair_obj);
-
                     if (!empty($option_by_month)) {
                         $other_month = null;
 

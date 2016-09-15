@@ -50,7 +50,7 @@ class ParseCustomAud extends Command
                             ->where(
                                 [
                                     ['_option_month', '=', $month],
-                                    ['_symbol', '=', $this->pair_with_major]
+                                    ['_symbol', '=', Base::PAIR_AUD.Base::PAIR_USD]
                                 ]
                             )
                             ->orderBy('_expiration')

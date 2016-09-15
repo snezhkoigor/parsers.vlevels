@@ -93,7 +93,7 @@ class ParseCustom extends Command
                         switch ($instrument) {
                             case Base::PAIR_AUD:
                                 $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
-
+                                var_dump($other_month);die;
                                 break;
 
                             case Base::PAIR_CAD:
@@ -126,7 +126,7 @@ class ParseCustom extends Command
 
                                 break;
                         }
-var_dump($other_month);die;
+
                         if ($other_month) {
                             if ($option->_option_month != $option_by_month->_option_month) {
                                 $other_month->update_day_table = false;

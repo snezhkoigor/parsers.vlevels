@@ -46,7 +46,7 @@ class ParseCustomAud extends Command
                 if (count($months) !== 0) {
                     foreach ($months as $month) {
                         $option_by_month = $aud->getOptionDataByMonth($month);
-
+var_dump($month);die;
                         if (!empty($option_by_month)) {
                             $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
 var_dump($other_month);die;

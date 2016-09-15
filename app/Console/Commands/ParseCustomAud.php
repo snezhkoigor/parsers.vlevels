@@ -45,7 +45,15 @@ class ParseCustomAud extends Command
 
                 if (count($months) !== 0) {
                     foreach ($months as $month) {
-                        $option_by_month = $aud->getOptionDataByMonth($month);
+                        $option_by_month = DB::table($this->table)
+                            ->where(
+                                [
+                                    ['_option_month', '=', $month],
+                                    ['_symbol', '=', $this->pair_with_major]
+                                ]
+                            )
+                            ->orderBy('_expiration')
+                            ->first();
 
                         if (!empty($option_by_month)) {
                             var_dump($option_by_month->_expiration, $pdf_files_date);die;

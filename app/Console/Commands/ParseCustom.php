@@ -82,7 +82,7 @@ class ParseCustom extends Command
 
         if ($pair_obj && ($files = $pair_obj->getFiles()) && ($option = $pair_obj->getOption())) {
             $months = $pair_obj->getMonths($pair_obj->getCmeFilePath() . $files[$pair_obj::CME_BULLETIN_TYPE_CALL], $option->_option_month);
-
+            var_dump($months);die;
             if (count($months) !== 0) {
                 foreach ($months as $month) {
                     $option_by_month = $pair_obj->getOptionDataByMonth($month);

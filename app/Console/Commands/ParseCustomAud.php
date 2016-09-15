@@ -39,7 +39,7 @@ class ParseCustomAud extends Command
 
         if (!empty($pdf_files_date)) {
             $aud = new Aud(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
-
+            var_dump($aud);die;
             if (($files = $aud->getFiles()) && ($option = $aud->getOption())) {
                 $months = $aud->getMonths($aud->getCmeFilePath() . $files[$aud::CME_BULLETIN_TYPE_CALL], $option->_option_month);
 

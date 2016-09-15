@@ -27,8 +27,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseEur::class,
         Commands\ParseXau::class,
         Commands\Demo::class,
-        // Commands\ParseCustom::class,
-        Commands\ParseCustomAud::class
+        Commands\ParseCustom::class
     ];
 
     /**

@@ -77,7 +77,7 @@ class Base
 //                $this->option_date = strtotime(date("d-m-Y", (time() - 86400)));
 //            }
         } else {
-            $this->option_date = is_int($option_date) ? $option_date : strtotime($option_date);
+            $this->option_date = (int)$option_date ? $option_date : strtotime($option_date);
         }
 
         $this->files = $this->getFilesAssociations($this->pair);
@@ -91,7 +91,7 @@ class Base
                 $this->pdf_files_date = strtotime(date("d-m-Y", (time() - 86400)));
             }
         } else {
-            $this->pdf_files_date = is_int($pdf_files_date) ? $pdf_files_date : strtotime($pdf_files_date);
+            $this->pdf_files_date = (int)$pdf_files_date ? $pdf_files_date : strtotime($pdf_files_date);
         }
 
         if (!Schema::hasTable($this->table_parser_settings)) {

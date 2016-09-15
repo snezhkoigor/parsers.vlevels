@@ -86,7 +86,7 @@ class ParseCustom extends Command
             if (count($months) !== 0) {
                 foreach ($months as $month) {
                     $option_by_month = $pair_obj->getOptionDataByMonth($month);
-
+                    var_dump($option_by_month, $month);die;
                     if (!empty($option_by_month)) {
                         $other_month = null;
 
@@ -126,7 +126,7 @@ class ParseCustom extends Command
 
                                 break;
                         }
-                        var_dump($other_month);die;
+
                         if ($other_month) {
                             if ($option->_option_month != $option_by_month->_option_month) {
                                 $other_month->update_day_table = false;

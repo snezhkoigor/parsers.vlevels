@@ -79,7 +79,7 @@ class ParseCustom extends Command
                     break;
             }
         }
-
+var_dump($pair_obj);die;
         if ($pair_obj && ($files = $pair_obj->getFiles()) && ($option = $pair_obj->getOption())) {
             $months = $pair_obj->getMonths($pair_obj->getCmeFilePath() . $files[$pair_obj::CME_BULLETIN_TYPE_CALL], $option->_option_month);
 

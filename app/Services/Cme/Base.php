@@ -18,6 +18,9 @@ class Base
     const CME_BULLETIN_TYPE_CALL = 'call';
     const CME_BULLETIN_TYPE_PUT = 'put';
 
+    const CME_DB_BULLETIN_TYPE_CALL = 0;
+    const CME_DB_BULLETIN_TYPE_PUT = 1;
+
     const PAIR_EUR = 'EUR';
     const PAIR_GBP = 'GBP';
     const PAIR_JPY = 'JPY';
@@ -38,6 +41,9 @@ class Base
     public $update_day_table = true;
 
     public static $email = 'i.s.sergeevich@yandex.ru';
+    
+    public $min_fractal_volume = 10;
+    public $update_fractal_field_table = true;
     
     public static $month_associations = array(
         'jan' => '01',
@@ -271,7 +277,7 @@ class Base
             ->where(
                 [
                     ['_date', '=', $date],
-                    ['_type', '=', ($type == self::CME_BULLETIN_TYPE_CALL ? 0 : 1)],
+                    ['_type', '=', ($type == self::CME_BULLETIN_TYPE_CALL ? self::CME_DB_BULLETIN_TYPE_CALL : self::CME_DB_BULLETIN_TYPE_PUT)],
                     ['_option', '=', $option]
                 ]
             )
@@ -299,7 +305,7 @@ class Base
                 $data_for_insert[] = array(
                     '_option' => $this->option->_id,
                     '_date' => $date,
-                    '_type' => ($type == self::CME_BULLETIN_TYPE_CALL ? 0 : 1),
+                    '_type' => ($type == self::CME_BULLETIN_TYPE_CALL ? self::CME_DB_BULLETIN_TYPE_CALL : self::CME_DB_BULLETIN_TYPE_PUT),
                     '_strike' => $item['strike'],
                     '_reciprocal' => $item['reciprocal'],
                     '_volume' => $item['volume'],
@@ -531,6 +537,10 @@ class Base
                         }
 
                         $this->updateCvs($this->pdf_files_date, $data_call, $data_put);
+
+                        if ($this->update_fractal_field_table == true) {
+                            $this->updateIsFractal($this->pdf_files_date, $data_call, $data_put);
+                        }
                     }
 
                     $this->finish($this->option->_id, $update_e_time);
@@ -569,7 +579,7 @@ class Base
 
         return true;
     }
-    
+
     protected function createMonthTable()
     {
         Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
@@ -588,6 +598,7 @@ class Base
             $table->double('_cvs', 4, 2)->nullable();
             $table->tinyInteger('_cvs_balance')->nullable();
             $table->integer('_print')->nullable();
+            $table->tinyInteger('_is_fractal')->default(0);
         });
 
         return true;
@@ -720,7 +731,7 @@ class Base
                             [
                                 ['_strike', '=', $strike],
                                 ['_date', '=', $date],
-                                ['_type', '=', 0],
+                                ['_type', '=', self::CME_DB_BULLETIN_TYPE_CALL],
                             ]
                         )
                         ->update(['_cvs' => $call]);
@@ -733,7 +744,7 @@ class Base
                             [
                                 ['_strike', '=', $strike],
                                 ['_date', '=', $date],
-                                ['_type', '=', 1],
+                                ['_type', '=', self::CME_DB_BULLETIN_TYPE_PUT],
                             ]
                         )
                         ->update(['_cvs' => $put]);
@@ -759,6 +770,53 @@ class Base
                 ->update(['_cvs_balance' => 1]);
         } else {
             Log::warning('CVS: Нет balance_strike.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
+        }
+
+        return true;
+    }
+
+    protected function updateIsFractal($date, $data_call, $data_put)
+    {
+        if (count($data_call) !== 0) {
+            for ($i = 1; $i < (count($data_call) - 2); $i++) {
+                if ($data_call[$i]['volume'] > $data_call[$i - 1]['volume'] && 
+                    $data_call[$i]['volume'] > $data_call[$i + 1]['volume'] && 
+                    $data_call[$i - 1]['volume'] >= $this->min_fractal_volume &&
+                    $data_call[$i + 1]['volume'] >= $this->min_fractal_volume) {
+                    DB::table($this->table_month)
+                        ->where(
+                            [
+                                ['_strike', '=', $data_call[$i]['strike']],
+                                ['_date', '=', $date],
+                                ['_type', '=', self::CME_DB_BULLETIN_TYPE_CALL],
+                            ]
+                        )
+                        ->update(['_is_fractal' => 1]);
+                }
+            }
+        } else {
+            Log::warning('is_fractal: Нет данных call.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
+        }
+
+        if (count($data_put) !== 0) {
+            for ($i = 1; $i < (count($data_put) - 2); $i++) {
+                if ($data_put[$i]['volume'] > $data_put[$i - 1]['volume'] &&
+                    $data_put[$i]['volume'] > $data_put[$i + 1]['volume'] &&
+                    $data_put[$i - 1]['volume'] >= $this->min_fractal_volume &&
+                    $data_put[$i + 1]['volume'] >= $this->min_fractal_volume) {
+                    DB::table($this->table_month)
+                        ->where(
+                            [
+                                ['_strike', '=', $data_put[$i]['strike']],
+                                ['_date', '=', $date],
+                                ['_type', '=', self::CME_DB_BULLETIN_TYPE_PUT],
+                            ]
+                        )
+                        ->update(['_is_fractal' => 1]);
+                }
+            }
+        } else {
+            Log::warning('is_fractal: Нет данных put.', [ 'date' => $date, 'call' => json_encode($data_call), 'put' => json_encode($data_put) ]);
         }
 
         return true;
@@ -891,5 +949,12 @@ class Base
         }
 
         return $result;
+    }
+
+    protected function createFieldIsFractal()
+    {
+        Schema::table($this->table_month, function($table) {
+            $table->tinyInteger('_is_fractal')->default(0);
+        });
     }
 }

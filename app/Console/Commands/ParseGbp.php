@@ -42,11 +42,13 @@ class ParseGbp extends Command
 
                         if ($option->_option_month != $option_by_month->_option_month) {
                             $other_month->update_day_table = false;
+                            $other_month->update_fractal_field_table = false;
                         }
 
                         $other_month->parse();
 
                         unset($option_by_month);
+                        unset($other_month);
                     }
                 }
             }

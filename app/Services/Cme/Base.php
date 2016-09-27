@@ -953,8 +953,14 @@ class Base
 
     protected function createFieldIsFractal()
     {
-        Schema::table($this->table_month, function($table) {
-            $table->tinyInteger('_is_fractal')->default(0);
-        });
+        if (!Schema::hasTable($this->table_month)) {
+            $this->createMonthTable();
+        }
+
+        if (!Schema::hasColumn($this->table_month, '_is_fractal')) {
+            Schema::table($this->table_month, function ($table) {
+                $table->tinyInteger('_is_fractal')->default(0);
+            });
+        }
     }
 }

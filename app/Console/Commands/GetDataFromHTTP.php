@@ -13,6 +13,7 @@ use App\Services\Cme\Jpy;
 use App\Services\Cme\Chf;
 use App\Services\Cme\Gbp;
 use App\Services\Cme\Eur;
+use App\Services\Cme\Xau;
 
 use DB;
 

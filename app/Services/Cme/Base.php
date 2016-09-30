@@ -55,6 +55,7 @@ class Base
     public $json_option_product_id = null;
     public $json_pair_name = null;
     public $json_settle_strike_divide = 1;
+    public $json_max_month_to_parse = 10000;
     // {bulletin_date} = xxxxxxxx
     public $json_main_data_link = 'http://www.cmegroup.com/CmeWS/mvc/Volume/Details/O/{option_product_id}/{bulletin_date}/P?optionProductId={option_product_id}&pageSize=500';
     // {bulletin_date} = xx/xx/xxxx
@@ -515,7 +516,13 @@ class Base
                 $main_data = $this->prepareMainDataFromJson($main_data);
 
                 if (count($main_data) !== 0) {
+                    $cnt = 1;
                     foreach ($main_data as $month => $month_items) {
+                        // огранииваем число месяцев в парсинге
+                        if ($cnt > $this->json_max_month_to_parse) {
+                            break;
+                        }
+
                         $year = preg_replace('/[a-zA-Z]/', '', $month);
                         $number = preg_replace('/[0-9]/', '', strtolower($month));
                         $json_other_data_link = str_replace(array('{option_product_id}', '{pair}', '{month}', '{year}', '{strategy}', '{bulletin_date}'), array($this->json_option_product_id, $this->json_pair_name, self::$json_month_associations[$number], $year, $this->json_strategy, date('m/d/Y', $this->pdf_files_date)), $this->json_other_data_link);
@@ -534,6 +541,8 @@ class Base
                                         $result[$month][$type][$strike]['reciprocal'] = !empty($other_data[$type][$strike]['reciprocal']) ? (float)$other_data[$type][$strike]['reciprocal'] : 0;
                                     }
                                 }
+
+                                $cnt++;
                             } else {
                                 unset($result[$month]);
                             }

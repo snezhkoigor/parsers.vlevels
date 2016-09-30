@@ -510,7 +510,7 @@ class Base
         if (!empty($this->json_main_data_link) && !empty($this->pdf_files_date)) {
             $response = Curl::to($this->json_main_data_link)
                 ->get();
-var_dump($this->json_main_data_link, $response);die;
+
             if (!empty($response)) {
                 $main_data = json_decode($response, true);
                 $main_data = $this->prepareMainDataFromJson($main_data);

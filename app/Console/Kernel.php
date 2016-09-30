@@ -2,10 +2,10 @@
 
 namespace App\Console;
 
+use App\Services\Cme\Base;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 use DB;
 
@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\GetDataFromHTTP::class,
         Commands\GetForwardPointsFromFTP::class,
         Commands\GetFilesFromFTP::class,
         Commands\ParseAud::class,
@@ -38,22 +39,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-//        $schedule->command('demo')->everyMinute();
-
-        $schedule->command('getFilesFromFTP')
+        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf')
             ->when(function() {
                 $result = true;
 
-                if (count(Storage::disk('public')->files(env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/')) != 0) {
-                    Log::warning('Папка ' . env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . '/' . ' не пуста. ');
-                    $result = false;
-                }
-
                 if (date('w') == 0 || date('w') == 1) {
                     if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, воскресение.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, воскресение.');
                     } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, понедельник.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, понедельник.');
                     }
 
                     $result = false;
@@ -64,183 +58,215 @@ class Kernel extends ConsoleKernel
             ->everyThirtyMinutes()
             ->withoutOverlapping()
             ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг PDF файлов.');
+                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг json файлов.');
             });
 
-        $schedule->command('parseAud')
+        $schedule->command('getFilesFromFTP')
             ->when(function() {
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
                     if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, воскресение.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, воскресение.');
                     } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, понедельник.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг PDF файлов остановлен, понедельник.');
                     }
 
                     $result = false;
                 }
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг AUD.');
-            });
-
-        $schedule->command('parseCad')
-            ->when(function() {
-                $result = true;
-
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, понедельник.');
-                    }
-
+                $folder = env('CME_PARSER_SAVE_FOLDER') . '/' . date("Y") . '/' . env('CME_BULLETIN_FOLDER_PREFIX') . date('Ymd', strtotime('-1 DAY', time())) . '/';
+                if (Base::isFolderIsNotEmpty($folder)) {
+                    Log::info('Папка ' . $folder . ' не пуста. ');
                     $result = false;
                 }
 
                 return $result;
             })
-            ->everyFiveMinutes()
+            ->everyThirtyMinutes()
             ->withoutOverlapping()
             ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CAD.');
+                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг PDF файлов.');
             });
 
-        $schedule->command('parseChf')
-            ->when(function() {
-                $result = true;
+        if (env('CME_PARSER_USE') == Base::PARSER_TYPE_PDF) {
+            $schedule->command('parseAud')
+                ->when(function () {
+                    $result = true;
 
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, понедельник.');
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг AUD остановлен, понедельник.');
+                        }
+
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг AUD.');
+                });
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг CHF.');
-            });
+            $schedule->command('parseCad')
+                ->when(function () {
+                    $result = true;
 
-        $schedule->command('parseEur')
-            ->when(function() {
-                $result = true;
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг CAD остановлен, понедельник.');
+                        }
 
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, понедельник.');
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг CAD.');
+                });
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг EUR.');
-            });
+            $schedule->command('parseChf')
+                ->when(function () {
+                    $result = true;
 
-        $schedule->command('parseGbp')
-            ->when(function() {
-                $result = true;
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг CHF остановлен, понедельник.');
+                        }
 
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, понедельник.');
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг CHF.');
+                });
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг GBP.');
-            });
+            $schedule->command('parseEur')
+                ->when(function () {
+                    $result = true;
 
-        $schedule->command('parseJpy')
-            ->when(function() {
-                $result = true;
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг EUR остановлен, понедельник.');
+                        }
 
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, понедельник.');
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг EUR.');
+                });
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг JPY.');
-            });
+            $schedule->command('parseGbp')
+                ->when(function () {
+                    $result = true;
 
-        $schedule->command('parseXau')
-            ->when(function() {
-                $result = true;
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг GBP остановлен, понедельник.');
+                        }
 
-                if (date('w') == 0 || date('w') == 1) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, понедельник.');
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг GBP.');
+                });
 
-                return $result;
-            })
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг XAU.');
-            });
+            $schedule->command('parseJpy')
+                ->when(function () {
+                    $result = true;
 
-        $schedule->command('getForwardPointsFromFTP')
-            ->when(function() {
-                $result = true;
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг JPY остановлен, понедельник.');
+                        }
 
-                if (date('w') == 6 || date('w') == 0) {
-                    if (date('w') == 0) {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, воскресение.');
-                    } else {
-                        Log::warning(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, суббота.');
+                        $result = false;
                     }
 
-                    $result = false;
-                }
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг JPY.');
+                });
 
-                return $result;
-            })
-            ->hourly()
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::warning(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points.');
-            });
+            $schedule->command('parseXau')
+                ->when(function () {
+                    $result = true;
+
+                    if (date('w') == 0 || date('w') == 1) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг XAU остановлен, понедельник.');
+                        }
+
+                        $result = false;
+                    }
+
+                    return $result;
+                })
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг XAU.');
+                });
+
+            $schedule->command('getForwardPointsFromFTP')
+                ->when(function () {
+                    $result = true;
+
+                    if (date('w') == 6 || date('w') == 0) {
+                        if (date('w') == 0) {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, воскресение.');
+                        } else {
+                            Log::info(date('d.m.Y H:i:s') . '. Парсинг Forward points остановлен, суббота.');
+                        }
+
+                        $result = false;
+                    }
+
+                    return $result;
+                })
+                ->hourly()
+                ->withoutOverlapping()
+                ->after(function () {
+                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points.');
+                });
+        } elseif (env('CME_PARSER_USE') == Base::PARSER_TYPE_JSON) {
+            
+        }
     }
 }

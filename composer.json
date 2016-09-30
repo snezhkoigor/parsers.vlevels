@@ -11,7 +11,8 @@
         "php-xpdf/php-xpdf": "~0.2.0",
         "graham-campbell/exceptions": "^9.1",
         "barryvdh/laravel-debugbar": "^2.2",
-        "guzzlehttp/guzzle": "^6.2"
+        "guzzlehttp/guzzle": "^6.2",
+        "ixudra/curl": "6.*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

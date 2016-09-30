@@ -108,7 +108,15 @@ return [
     |
     */
 
-    'log' => env('APP_LOG', 'single'),
+    'log' => env('APP_LOG', 'daily'),
+    'log_max_files' => 30,
+
+    /*
+     |--------------------------------------------------------------------------
+     | Parser Configuration
+     |--------------------------------------------------------------------------
+     */
+    'parser' => env('CME_PARSER_USE', \App\Services\Cme\Base::PARSER_TYPE_PDF),
 
     /*
     |--------------------------------------------------------------------------
@@ -158,9 +166,21 @@ return [
 
         GrahamCampbell\Exceptions\ExceptionsServiceProvider::class,
 
-        Barryvdh\Debugbar\ServiceProvider::class
+        Barryvdh\Debugbar\ServiceProvider::class,
+
+        Ixudra\Curl\CurlServiceProvider::class,
 
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Facades
+    |--------------------------------------------------------------------------
+    |
+    */
+    'facades' => array(
+        'Curl' => Ixudra\Curl\Facades\Curl::class,
+    ),
 
     /*
     |--------------------------------------------------------------------------

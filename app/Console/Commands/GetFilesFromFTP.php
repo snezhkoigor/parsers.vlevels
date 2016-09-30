@@ -48,7 +48,7 @@ class GetFilesFromFTP extends Command
      */
     public function handle()
     {
-        $disk = Storage::disk('public');
+        $disk = Storage::disk(Base::$storage);
         $path_prefix = $disk->getDriver()->getAdapter()->getPathPrefix();
 
         // установка соединения
@@ -93,7 +93,7 @@ class GetFilesFromFTP extends Command
                                 $zip->extractTo($path_prefix . env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/' . substr($last_file, 0, 26) . '/');
                                 $zip->close();
 
-                                Log::warning('Файлы скопированы и распакованы.', [ 'file' => $local_file ]);
+                                Log::info('Файлы скопированы и распакованы.', [ 'file' => $local_file ]);
                             } else {
                                 Log::warning('Файлы не были скопированы и распакованы.', [ 'file' => $local_file ]);
                             }

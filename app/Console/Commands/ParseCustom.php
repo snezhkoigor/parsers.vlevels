@@ -19,7 +19,7 @@ class ParseCustom extends Command
      *
      * @var string
      */
-    protected $signature = 'parseCustom {instrument : without USD (ex: aud)} {date : ex. 2016-01-01}';
+    protected $signature = 'parseCustom {instrument : without USD (ex: aud)} {date_from : ex. 2016-01-01}  {date_to : ex. 2016-01-01}';
 
     /**
      * The console command description.
@@ -36,7 +36,8 @@ class ParseCustom extends Command
     public function handle()
     {
         $instrument = strtoupper($this->argument('instrument'));
-        $pdf_files_date = strtotime($this->argument('date'));
+        $pdf_files_date = strtotime($this->argument('date_from'));
+        $pdf_files_date_to = strtotime($this->argument('date_to'));
 
         $pair_obj = null;
         if (!empty($instrument) && !empty($pdf_files_date)) {

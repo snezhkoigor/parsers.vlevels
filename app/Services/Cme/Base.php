@@ -12,9 +12,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Ixudra\Curl\Facades\Curl;
 
 class Base
 {
+    const PARSER_TYPE_PDF = 'pdf';
+    const PARSER_TYPE_JSON = 'json';
+
     const CME_BULLETIN_TYPE_CALL = 'call';
     const CME_BULLETIN_TYPE_PUT = 'put';
 
@@ -30,6 +35,8 @@ class Base
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
 
+    public static $storage = 'public';
+
     public $start_index_call = null;
     public $end_index_call = null;
     public $start_index_put = null;
@@ -40,8 +47,25 @@ class Base
     public $month_end = null;
     public $update_day_table = true;
 
-    public static $email = 'i.s.sergeevich@yandex.ru';
+    public $cme_file_path;
+    public $pdf_files_date;
+    public $pair;
     
+    public $json_strategy = 'DEFAULT';
+    public $json_option_product_id = null;
+    public $json_pair_name = null;
+    public $json_settle_strike_divide = 1;
+    // {bulletin_date} = xxxxxxxx
+    public $json_main_data_link = 'http://www.cmegroup.com/CmeWS/mvc/Volume/Details/O/{option_product_id}/{bulletin_date}/P?optionProductId={option_product_id}&pageSize=500';
+    // {bulletin_date} = xx/xx/xxxx
+    // {year} = xx
+    // {month} == $json_month_associations
+    // {pair} == $json_pair_name
+    // {strategy} == $json_strategy
+    public $json_other_data_link = 'http://www.cmegroup.com/CmeWS/mvc/Settlements/Options/Settlements/{option_product_id}/OOF?monthYear={pair}{month}{year}&strategy={strategy}&tradeDate={bulletin_date}&pageSize=500';
+
+    public static $email = 'i.s.sergeevich@yandex.ru';
+
     public $min_fractal_volume = 10;
     public $update_fractal_field_table = true;
     
@@ -60,18 +84,30 @@ class Base
         'dec' => '12'
     );
 
+    public static $json_month_associations = array(
+        'jan' => 'F',
+        'feb' => 'G',
+        'mar' => 'H',
+        'apr' => 'J',
+        'may' => 'K',
+        'jun' => 'M',
+        'jul' => 'N',
+        'aug' => 'Q',
+        'sep' => 'U',
+        'oct' => 'V',
+        'nov' => 'X',
+        'dec' => 'Z'
+    );
+
     protected $files;
     protected $pair_with_major;
     protected $option;
     protected $option_date;
-    protected $pdf_files_date;
     protected $table;
     protected $table_day;
     protected $table_total;
     protected $table_month;
     protected $table_parser_settings = 'parser_settings';
-    protected $cme_file_path;
-    protected $pair;
 
     public function __construct($option_date = null, $pdf_files_date = null) {
         if (empty($option_date)) {
@@ -103,6 +139,13 @@ class Base
         if (!Schema::hasTable($this->table_parser_settings)) {
             $this->createParserSettingsTable();
         }
+    }
+
+    public static function isFolderIsNotEmpty($folder)
+    {
+        $cnt = count(Storage::disk(self::$storage)->files($folder));
+
+        return ($cnt > 0) ? true : false;
     }
 
     public function getOptionDataByMonth($month)
@@ -459,6 +502,50 @@ class Base
             );
     }
 
+    public function getDataFromJson()
+    {
+        $result = [];
+
+        if (!empty($this->json_main_data_link) && !empty($this->pdf_files_date)) {
+            $response = Curl::to($this->json_main_data_link)
+                ->get();
+
+            if (!empty($response)) {
+                $main_data = json_decode($response, true);
+                $main_data = $this->prepareMainDataFromJson($main_data);
+
+                if (count($main_data) !== 0) {
+                    foreach ($main_data as $month => $month_items) {
+                        $year = preg_replace('/[a-zA-Z]/', '', $month);
+                        $number = preg_replace('/[0-9]/', '', strtolower($month));
+                        $json_other_data_link = str_replace(array('{option_product_id}', '{pair}', '{month}', '{year}', '{strategy}', '{bulletin_date}'), array($this->json_option_product_id, $this->json_pair_name, self::$json_month_associations[$number], $year, $this->json_strategy, date('m/d/Y', $this->pdf_files_date)), $this->json_other_data_link);
+
+                        $response_other_data = Curl::to($json_other_data_link)
+                            ->get();
+
+                        if (!empty($response_other_data)) {
+                            $other_data = json_decode($response_other_data, true);
+                            $other_data = $this->prepareOtherDataFromJson($other_data);
+
+                            if (count($other_data) !== 0) {
+                                foreach ($month_items as $type => $strikes) {
+                                    foreach ($strikes as $strike => $strike_data) {
+                                        $result[$month][$type][$strike] = $strike_data;
+                                        $result[$month][$type][$strike]['reciprocal'] = !empty($other_data[$type][$strike]['reciprocal']) ? (float)$other_data[$type][$strike]['reciprocal'] : 0;
+                                    }
+                                }
+                            } else {
+                                unset($result[$month]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
     public function getMonths($file, $current_option_month)
     {
         $months = array();
@@ -471,16 +558,16 @@ class Base
             if ($start && $end) {
                 $text = substr($text, $start, $end - $start);
                 $text = str_replace(array($this->month_start, $this->month_end), '', $text);
-         
+
                 if ($text) {
                     $text_arr = explode(' ', $text);
 
                     if (count($text_arr) !== 0) {
                         $current_month_time = strtotime(preg_replace('/[a-zA-Z]/', '', $current_option_month) . '-' . self::$month_associations[preg_replace('/[0-9]/', '', strtolower($current_option_month))] . '-01');
-                        
+
                         foreach ($text_arr as $month) {
                             $month = trim($month);
-                            
+
                             $year = preg_replace('/[a-zA-Z]/', '', $month);
                             $number = preg_replace('/[0-9]/', '', strtolower($month));
 
@@ -497,7 +584,7 @@ class Base
         return $months;
     }
 
-    public function parse($update_e_time = true)
+    public function parse($update_e_time = true, $call = null, $put = null)
     {
         $parser_info = DB::table($this->table_parser_settings)
             ->where(
@@ -510,8 +597,8 @@ class Base
 
         if (empty($parser_info)) {
             if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
-                $data_call = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL);
-                $data_put = $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT);
+                $data_call = empty($call) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL) : $call;
+                $data_put = empty($put) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT) : $put;
 
                 if (count($data_call) && count($data_put)) {
                     $max_oi_call = 0;
@@ -946,6 +1033,58 @@ class Base
                 }
 
                 break;
+        }
+
+        return $result;
+    }
+
+    protected function prepareMainDataFromJson($items)
+    {
+        $result = [];
+
+        if ($items['empty'] == false) {
+            foreach ($items['monthData'] as $item) {
+                $month_info_arr = explode('-', $item['monthID']);
+
+                if (count($month_info_arr) == 3) {
+                    $key = strpos(strtolower($item['label']), self::CME_BULLETIN_TYPE_CALL) !== false ? self::CME_BULLETIN_TYPE_CALL : self::CME_BULLETIN_TYPE_PUT;
+
+                    if (count($item['strikeData']) !== 0) {
+                        foreach ($item['strikeData'] as $strike_info) {
+                            $result[$month_info_arr[0].$month_info_arr[1]][$key][(int)$strike_info['strike']] = [
+                                'strike' => (int)$strike_info['strike'],
+                                'reciprocal' => 0,
+                                'volume' => (int)str_replace(array(','), array(''), $strike_info['totalVolume']),
+                                'oi' => (int)str_replace(array(','), array(''), $strike_info['atClose']),
+                                'coi' => (int)str_replace(array(','), array(''), $strike_info['change']),
+                                'delta' => 0,
+                                'cvs' => null,
+                                'cvs_balance' => null,
+                                'print' => null
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    protected function prepareOtherDataFromJson($items)
+    {
+        $result = [];
+
+        if ($items['empty'] == false) {
+            foreach ($items['settlements'] as $item) {
+                $key = strpos(strtolower($item['type']), self::CME_BULLETIN_TYPE_CALL) !== false ? self::CME_BULLETIN_TYPE_CALL : self::CME_BULLETIN_TYPE_PUT;
+                $strike = ((int)$item['strike'])/$this->json_settle_strike_divide;
+
+                $result[$key][$strike] = [
+                    'strike' => $strike,
+                    'reciprocal' => (float)$item['settle']
+                ];
+            }
         }
 
         return $result;

@@ -39,27 +39,27 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-//        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf')
-//            ->when(function() {
-//                $result = true;
-//
-//                if (date('w') == 0 || date('w') == 1) {
-//                    if (date('w') == 0) {
-//                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, воскресение.');
-//                    } else {
-//                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, понедельник.');
-//                    }
-//
-//                    $result = false;
-//                }
-//
-//                return $result;
-//            })
-//            ->everyThirtyMinutes()
-//            ->withoutOverlapping()
-//            ->after(function () {
-//                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг json файлов.');
-//            });
+        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau')
+            ->when(function() {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, воскресение.');
+                    } else {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг json файлов остановлен, понедельник.');
+                    }
+
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->after(function () {
+                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг json файлов.');
+            });
 
         $schedule->command('getFilesFromFTP')
             ->when(function() {

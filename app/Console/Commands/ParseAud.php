@@ -44,7 +44,7 @@ class ParseAud extends Command
                             $other_month->update_day_table = false;
                             $other_month->update_fractal_field_table = false;
                         }
-                        
+
                         $other_month->parse();
 
                         unset($option_by_month);

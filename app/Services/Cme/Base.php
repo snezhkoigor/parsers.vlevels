@@ -593,7 +593,7 @@ class Base
         return $months;
     }
 
-    public function parse($update_e_time = true, $call = null, $put = null)
+    public function isMonthAlreadyParsed()
     {
         $parser_info = DB::table($this->table_parser_settings)
             ->where(
@@ -604,7 +604,21 @@ class Base
                 ]
             )->first();
 
-        if (empty($parser_info)) {
+        return empty($parser_info) ? false : true;
+    }
+
+    public function parse($update_e_time = true, $call = null, $put = null)
+    {
+//        $parser_info = DB::table($this->table_parser_settings)
+//            ->where(
+//                [
+//                    ['_symbol', '=', strtoupper($this->pair_with_major)],
+//                    ['_bulletin_date', '=', $this->pdf_files_date],
+//                    ['_option', '=', $this->option->_id]
+//                ]
+//            )->first();
+
+        if (!$this->isMonthAlreadyParsed()) {
             if (!empty($this->option) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL]) && is_file($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT])) {
                 $data_call = empty($call) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL) : $call;
                 $data_put = empty($put) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT) : $put;

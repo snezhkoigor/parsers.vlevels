@@ -107,7 +107,7 @@ class GetDataFromHTTP extends Command
                 if (count($data) !== 0) {
                     //Usage
                     $disk->put($folder . env('CME_JSON_FILE_NAME'), json_encode($data));
-                    Log::info('Файлы создан.', ['folder' => $folder, 'pair' => $pair_obj->pair, 'data' => json_encode($data)]);
+                    Log::info('Файл создан.', ['folder' => $folder, 'pair' => $pair_obj->pair, 'data' => json_encode($data)]);
                 } else {
                     Log::warning('Нет данных с сайта CME или плохо спарсили.', ['folder' => $folder, 'pair' => $pair_obj->pair, 'data' => json_encode($data)]);
                 }

@@ -28,6 +28,7 @@ class Eur extends Base
     public $json_option_product_id = 60;
     public $json_pair_name = 'ZC';
     public $json_settle_strike_divide = 1;
+    public $json_settle_multiply = 1000;
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {

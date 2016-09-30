@@ -59,10 +59,7 @@ class Kernel extends ConsoleKernel
             ->when(function () {
                 return date('G') >= 7 && date('G') <= 11;
             })
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг json файлов.');
-            });
+            ->withoutOverlapping();
 
         $schedule->command('getFilesFromFTP')
             ->when(function() {
@@ -90,10 +87,7 @@ class Kernel extends ConsoleKernel
             ->when(function () {
                 return date('G') >= 7 && date('G') <= 11;
             })
-            ->withoutOverlapping()
-            ->after(function () {
-                Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг PDF файлов.');
-            });
+            ->withoutOverlapping();
 
         if (env('CME_PARSER_USE') == Base::PARSER_TYPE_PDF) {
             $schedule->command('parseAud')
@@ -113,10 +107,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг AUD.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseCad')
                 ->when(function () {
@@ -135,10 +126,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг CAD.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseChf')
                 ->when(function () {
@@ -157,10 +145,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг CHF.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseEur')
                 ->when(function () {
@@ -179,10 +164,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг EUR.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseGbp')
                 ->when(function () {
@@ -201,10 +183,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг GBP.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseJpy')
                 ->when(function () {
@@ -223,10 +202,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг JPY.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('parseXau')
                 ->when(function () {
@@ -245,10 +221,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг XAU.');
-                });
+                ->withoutOverlapping();
 
             $schedule->command('getForwardPointsFromFTP')
                 ->when(function () {
@@ -267,10 +240,7 @@ class Kernel extends ConsoleKernel
                     return $result;
                 })
                 ->hourly()
-                ->withoutOverlapping()
-                ->after(function () {
-                    Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг Forward points.');
-                });
+                ->withoutOverlapping();
         } elseif (env('CME_PARSER_USE') == Base::PARSER_TYPE_JSON) {
             
         }

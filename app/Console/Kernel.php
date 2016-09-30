@@ -56,6 +56,9 @@ class Kernel extends ConsoleKernel
                 return $result;
             })
             ->everyThirtyMinutes()
+            ->when(function () {
+                return date('G') >= 7 && date('G') <= 11;
+            })
             ->withoutOverlapping()
             ->after(function () {
                 Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг json файлов.');
@@ -84,6 +87,9 @@ class Kernel extends ConsoleKernel
                 return $result;
             })
             ->everyThirtyMinutes()
+            ->when(function () {
+                return date('G') >= 7 && date('G') <= 11;
+            })
             ->withoutOverlapping()
             ->after(function () {
                 Log::info(date('d.m.Y H:i:s') . '. Завершился парсинг PDF файлов.');

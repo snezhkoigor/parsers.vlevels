@@ -68,15 +68,20 @@ class GetFilesFromFTP extends Command
 
             if (!empty($contents)) {
                 foreach ($contents as $content) {
-                    $date_timestamp = strtotime(substr($content, 28, 8));
-                    if ((int)$date_timestamp > (int)$max_date) {
-                        $max_date = $date_timestamp;
-                        $last_file = $content;
+                    $content_arr = explode('_', $content);
+                    
+                    if (count($content_arr) == 3) {
+                        $date = $content_arr[2];
+                        $date_timestamp = strtotime(substr($date, 0, 4) . '-' . substr($date, 4, 2) . '-' . substr($date, 6, 2));
+
+                        if ((int)$date_timestamp > (int)$max_date) {
+                            $max_date = $date_timestamp;
+                            $last_file = $content;
+                        }
                     }
                 }
 
                 $last_file = str_replace(env('CME_FTP_CONTENTS_FOLDER') . '/', '', $last_file);
-
                 $disk->makeDirectory(env('CME_PARSER_SAVE_FOLDER') . '/' . substr($last_file, 18, 4) . '/');
 
                 // попытка скачать и распаковать архив

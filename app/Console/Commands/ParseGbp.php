@@ -31,7 +31,7 @@ class ParseGbp extends Command
     {
         $gbp = new Gbp();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $gbp->getFiles()) && ($option = $gbp->getOption())) {
                     $months = $gbp->getMonths($gbp->getCmeFilePath() . $files[$gbp::CME_BULLETIN_TYPE_CALL], $option->_option_month);

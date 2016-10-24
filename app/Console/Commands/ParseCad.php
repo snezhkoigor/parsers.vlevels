@@ -31,7 +31,7 @@ class ParseCad extends Command
     {
         $cad = new Cad();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $cad->getFiles()) && ($option = $cad->getOption())) {
                     $months = $cad->getMonths($cad->getCmeFilePath() . $files[$cad::CME_BULLETIN_TYPE_CALL], $option->_option_month);

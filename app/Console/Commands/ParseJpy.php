@@ -31,7 +31,7 @@ class ParseJpy extends Command
     {
         $jpy = new Jpy();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $jpy->getFiles()) && ($option = $jpy->getOption())) {
                     $months = $jpy->getMonths($jpy->getCmeFilePath() . $files[$jpy::CME_BULLETIN_TYPE_CALL], $option->_option_month);

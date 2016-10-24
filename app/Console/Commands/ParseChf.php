@@ -31,7 +31,7 @@ class ParseChf extends Command
     {
         $chf = new Chf();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $chf->getFiles()) && ($option = $chf->getOption())) {
                     $months = $chf->getMonths($chf->getCmeFilePath() . $files[$chf::CME_BULLETIN_TYPE_CALL], $option->_option_month);

@@ -167,7 +167,7 @@ class Base
     {
         return $this->files;
     }
-    
+
     public function getCmeFilePath()
     {
         return $this->cme_file_path;
@@ -634,7 +634,7 @@ class Base
                         $this->addTotalCmeData($this->option->_id, $this->pdf_files_date, $data_call, $data_put);
                         $this->updatePairPrints($this->pdf_files_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
 
-                        if ($this->update_day_table === true && env('CME_PARSER_USE') == Base::PARSER_TYPE_PDF) {
+                        if ($this->update_day_table === true && config('app.parser') == Base::PARSER_TYPE_PDF) {
                             $this->updateCmeDayTable($this->pdf_files_date, $data_call, $data_put, $this->pair_with_major);
                         }
 
@@ -664,7 +664,7 @@ class Base
     protected function extract($file)
     {
         $pdfToText = \XPDF\PdfToText::create();
-        return $pdfToText->getText($file);
+        return is_file($file) ? $pdfToText->getText($file) : null;
     }
 
     protected function createParserSettingsTable()

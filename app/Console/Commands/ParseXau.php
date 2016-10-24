@@ -31,7 +31,7 @@ class ParseXau extends Command
     {
         $xau = new Xau();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $xau->getFiles()) && ($option = $xau->getOption())) {
                     $months = $xau->getMonths($xau->getCmeFilePath() . $files[$xau::CME_BULLETIN_TYPE_CALL], $option->_option_month);

@@ -31,7 +31,7 @@ class ParseAud extends Command
     {
         $aud = new Aud();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $aud->getFiles()) && ($option = $aud->getOption())) {
                     $months = $aud->getMonths($aud->getCmeFilePath() . $files[$aud::CME_BULLETIN_TYPE_CALL], $option->_option_month);

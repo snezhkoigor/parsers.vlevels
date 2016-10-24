@@ -89,7 +89,7 @@ class Kernel extends ConsoleKernel
             })
             ->withoutOverlapping();
 
-        if (env('CME_PARSER_USE') == Base::PARSER_TYPE_PDF) {
+        if (config('app.parser') == Base::PARSER_TYPE_PDF) {
             $schedule->command('parseAud')
                 ->when(function () {
                     $result = true;
@@ -241,7 +241,7 @@ class Kernel extends ConsoleKernel
                 })
                 ->hourly()
                 ->withoutOverlapping();
-        } elseif (env('CME_PARSER_USE') == Base::PARSER_TYPE_JSON) {
+        } elseif (config('app.parser') == Base::PARSER_TYPE_JSON) {
             
         }
     }

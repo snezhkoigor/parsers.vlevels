@@ -31,7 +31,7 @@ class ParseEur extends Command
     {
         $eur = new Eur();
 
-        switch (env('CME_PARSER_USE')) {
+        switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
                 if (($files = $eur->getFiles()) && ($option = $eur->getOption())) {
                     $months = $eur->getMonths($eur->getCmeFilePath() . $files[$eur::CME_BULLETIN_TYPE_CALL], $option->_option_month);

@@ -35,6 +35,8 @@ class ParseCustom extends Command
      */
     public function handle()
     {
+        var_dump(config('app.parser'));die;
+
         $instrument = strtoupper($this->argument('instrument'));
         $pdf_files_date_from = strtotime($this->argument('date_from'));
         $pdf_files_date_to = strtotime($this->argument('date_to'));

@@ -879,12 +879,17 @@ class Base
 
     protected function updateIsFractal($date, $data_call, $data_put)
     {
+        Log::info('Обновление фракталов.', [ 'table' => $this->table_month, '_date' => $date, '_call' => $data_call, '_put' => $data_put ]);
+
         if (count($data_call) !== 0) {
             for ($i = 1; $i < (count($data_call) - 2); $i++) {
                 if ($data_call[$i]['volume'] > $data_call[$i - 1]['volume'] && 
                     $data_call[$i]['volume'] > $data_call[$i + 1]['volume'] && 
                     $data_call[$i - 1]['volume'] >= $this->min_fractal_volume &&
                     $data_call[$i + 1]['volume'] >= $this->min_fractal_volume) {
+
+                    Log::info('Фрактал CALL.', [ 'table' => $this->table_month, '_date' => $date, '_strike' => $data_call[$i]['strike'],  '_call' => $data_call, '_put' => $data_put ]);
+
                     DB::table($this->table_month)
                         ->where(
                             [
@@ -906,6 +911,9 @@ class Base
                     $data_put[$i]['volume'] > $data_put[$i + 1]['volume'] &&
                     $data_put[$i - 1]['volume'] >= $this->min_fractal_volume &&
                     $data_put[$i + 1]['volume'] >= $this->min_fractal_volume) {
+
+                    Log::info('Фрактал PUT.', [ 'table' => $this->table_month, '_date' => $date, '_strike' => $data_call[$i]['strike'],  '_call' => $data_call, '_put' => $data_put ]);
+
                     DB::table($this->table_month)
                         ->where(
                             [

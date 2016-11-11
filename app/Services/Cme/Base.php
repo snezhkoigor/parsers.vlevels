@@ -614,7 +614,7 @@ class Base
             if (!empty($this->option)) {
                 $data_call = empty($call) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_CALL], $this->option->_option_month, self::CME_BULLETIN_TYPE_CALL) : $call;
                 $data_put = empty($put) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT) : $put;
-
+var_dump($data_call);die;
                 if (count($data_call) && count($data_put)) {
                     $max_oi_call = 0;
                     $max_oi_put = 0;
@@ -1027,6 +1027,12 @@ class Base
                     $result = $data_arr;
                 } else if (count($data_arr) == 7) {
                     $result = array_merge($data_arr, array('+'));
+                } else if (count($data_arr) == 9) {
+                    foreach ($data_arr as $item) {
+                        if (strpos($item, '@') === false) {
+                            $result[] = $item;
+                        }
+                    }
                 }
 
                 break;

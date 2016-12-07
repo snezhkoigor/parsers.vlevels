@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Services\Cme\Base;
+use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseGbp::class,
         Commands\ParseEur::class,
         Commands\ParseXau::class,
+        Commands\ParseSp::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];

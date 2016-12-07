@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Base;
+use App\Services\Cme\Sp;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -93,6 +94,11 @@ class GetDataFromHTTP extends Command
 
                     case Base::PAIR_XAU:
                         $pair_obj = new Xau();
+
+                        break;
+
+                    case Base::PAIR_SP:
+                        $pair_obj = new Sp();
 
                         break;
                 }

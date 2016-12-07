@@ -34,6 +34,7 @@ class Base
     const PAIR_CAD = 'CAD';
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
+    const PAIR_SP = 'SP';
 
     public static $storage = 'public';
 
@@ -234,6 +235,13 @@ class Base
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section64_Metals_Option_Products.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section64_Metals_Option_Products.pdf'
+                ];
+                break;
+
+            case self::PAIR_SP:
+                $result = [
+                    self::CME_BULLETIN_TYPE_CALL => 'Section49_S_And_P_500_Call_Options.pdf',
+                    self::CME_BULLETIN_TYPE_PUT => 'Section50_S_And_P_500_Put_Options.pdf'
                 ];
                 break;
         }
@@ -692,7 +700,7 @@ class Base
             $table->integer('_date');
             $table->integer('_type');
             $table->integer('_strike');
-            $table->double('_reciprocal', 7, 4);
+            $table->double('_reciprocal', 9, 4);
             $table->integer('_volume');
             $table->integer('_oi');
             $table->integer('_coi');
@@ -715,8 +723,8 @@ class Base
             $table->char('_symbol', 15);
             $table->integer('_date');
             $table->integer('_strike');
-            $table->double('_p_call', 7, 4);
-            $table->double('_p_put', 7, 4);
+            $table->double('_p_call', 9, 4);
+            $table->double('_p_put', 9, 4);
         });
 
         return true;

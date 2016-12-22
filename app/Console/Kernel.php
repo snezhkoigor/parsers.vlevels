@@ -29,6 +29,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseEur::class,
         Commands\ParseXau::class,
         Commands\ParseSp::class,
+        Commands\ParseMiniSp::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];
@@ -233,6 +234,25 @@ class Kernel extends ConsoleKernel
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 остановлен, воскресение.');
                     } else {
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 остановлен, понедельник.');
+                    }
+
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
+
+        $schedule->command('parseMiniSp')
+            ->when(function () {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 остановлен, воскресение.');
+                    } else {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 остановлен, понедельник.');
                     }
 
                     $result = false;

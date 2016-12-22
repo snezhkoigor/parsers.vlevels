@@ -35,6 +35,7 @@ class Base
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
     const PAIR_SP = 'SP';
+    const PAIR_MSP = 'MSP';
 
     public static $storage = 'public';
 
@@ -242,6 +243,13 @@ class Base
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section49_S_And_P_500_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section50_S_And_P_500_Put_Options.pdf'
+                ];
+                break;
+
+            case self::PAIR_MSP:
+                $result = [
+                    self::CME_BULLETIN_TYPE_CALL => 'Section47_E_Mini_S_And_P_500_Call_Options.pdf',
+                    self::CME_BULLETIN_TYPE_PUT => 'Section48_E_Mini_S_And_P_500_Put_Options.pdf'
                 ];
                 break;
         }
@@ -920,7 +928,7 @@ class Base
                     $data_put[$i - 1]['volume'] >= $this->min_fractal_volume &&
                     $data_put[$i + 1]['volume'] >= $this->min_fractal_volume) {
 
-                    Log::info('Фрактал PUT.', [ 'table' => $this->table_month, '_date' => $date, '_strike' => $data_call[$i]['strike'],  '_call' => $data_call, '_put' => $data_put ]);
+                    Log::info('Фрактал PUT.', [ 'table' => $this->table_month, '_date' => $date, '_strike' => $data_put[$i]['strike'],  '_call' => $data_call, '_put' => $data_put ]);
 
                     DB::table($this->table_month)
                         ->where(

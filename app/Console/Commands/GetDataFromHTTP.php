@@ -16,7 +16,9 @@ use App\Services\Cme\Eur;
 use App\Services\Cme\Xau;
 use App\Services\Cme\EsEom;
 use App\Services\Cme\SpEom;
-use App\Services\Cme\Cl;
+//use App\Services\Cme\Cl;
+use App\Services\Cme\Euu;
+use App\Services\Cme\Jpu;
 
 use DB;
 
@@ -113,6 +115,16 @@ class GetDataFromHTTP extends Command
 //                        $pair_obj = new Cl();
 //
 //                        break;
+
+                    case Base::PAIR_EUU:
+                        $pair_obj = new Euu();
+
+                        break;
+
+                    case Base::PAIR_JPU:
+                        $pair_obj = new Jpu();
+
+                        break;
                 }
             }
 

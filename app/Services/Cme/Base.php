@@ -38,6 +38,9 @@ class Base
     const PAIR_ESEOM = 'ES_EOM';
     const PAIR_CL = 'CL';
 
+    const PAIR_EUU = 'EUU';
+    const PAIR_JPU = 'JPU';
+
     public static $storage = 'public';
 
     public $start_index_call = null;
@@ -187,6 +190,7 @@ class Base
 
         switch (strtoupper($pair)) {
             case self::PAIR_EUR:
+            case self::PAIR_EUU:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section39_Euro_FX_And_Cme$Index_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section39_Euro_FX_And_Cme$Index_Options.pdf'
@@ -202,6 +206,7 @@ class Base
                 break;
 
             case self::PAIR_JPY:
+            case self::PAIR_JPU:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section33_Japanese_Yen_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section34_Japanese_Yen_Put_Options.pdf'

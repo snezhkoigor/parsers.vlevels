@@ -30,6 +30,8 @@ class Kernel extends ConsoleKernel
         Commands\ParseSpEom::class,
         Commands\ParseEsEom::class,
         Commands\ParseCl::class,
+        Commands\ParseEuu::class,
+        Commands\ParseJpu::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];
@@ -42,7 +44,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom')
+        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom euu jpu')
             ->when(function() {
                 $result = true;
 
@@ -253,6 +255,44 @@ class Kernel extends ConsoleKernel
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 EOM остановлен, воскресение.');
                     } else {
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 EOM остановлен, понедельник.');
+                    }
+
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
+
+        $schedule->command('parseEuu')
+            ->when(function () {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe EUR остановлен, воскресение.');
+                    } else {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe EUR остановлен, понедельник.');
+                    }
+
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
+
+        $schedule->command('parseJpu')
+            ->when(function () {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe JPY остановлен, воскресение.');
+                    } else {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe JPY остановлен, понедельник.');
                     }
 
                     $result = false;

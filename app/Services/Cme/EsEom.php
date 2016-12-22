@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-class MiniSpEom extends Base
+class EsEom extends Base
 {
     public $start_index_call = 'EOM EMINI S&P C';
     public $end_index_call = 'EOW3 MINI S&P C';
@@ -30,11 +30,11 @@ class MiniSpEom extends Base
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {
-        $this->pair = self::PAIR_MSPEOM;
+        $this->pair = self::PAIR_ESEOM;
 
         parent::__construct($option_date, $pdf_files_date);
 
-        $this->pair_with_major = self::PAIR_MSPEOM;
+        $this->pair_with_major = self::PAIR_ESEOM;
         $this->option = DB::table($this->table)
             ->where(
                 [

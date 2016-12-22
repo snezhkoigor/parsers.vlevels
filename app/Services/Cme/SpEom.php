@@ -30,11 +30,11 @@ class SpEom extends Base
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {
-        $this->pair = self::PAIR_SPEOM;
+        $this->pair = self::PAIR_SP500_EOM;
 
         parent::__construct($option_date, $pdf_files_date);
 
-        $this->pair_with_major = self::PAIR_SPEOM;
+        $this->pair_with_major = self::PAIR_SP500_EOM;
         $this->option = DB::table($this->table)
             ->where(
                 [

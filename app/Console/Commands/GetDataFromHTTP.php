@@ -14,7 +14,7 @@ use App\Services\Cme\Chf;
 use App\Services\Cme\Gbp;
 use App\Services\Cme\Eur;
 use App\Services\Cme\Xau;
-use App\Services\Cme\MiniSpEom;
+use App\Services\Cme\EsEom;
 use App\Services\Cme\SpEom;
 use App\Services\Cme\Cl;
 
@@ -99,20 +99,20 @@ class GetDataFromHTTP extends Command
 
                         break;
 
-                    case Base::PAIR_SPEOM:
+                    case Base::PAIR_SP500_EOM:
                         $pair_obj = new SpEom();
 
                         break;
 
-                    case Base::PAIR_MSPEOM:
-                        $pair_obj = new MiniSpEom();
+                    case Base::PAIR_ESEOM:
+                        $pair_obj = new EsEom();
 
                         break;
 
-                    case Base::PAIR_CL:
-                        $pair_obj = new Cl();
-
-                        break;
+//                    case Base::PAIR_CL:
+//                        $pair_obj = new Cl();
+//
+//                        break;
                 }
             }
 

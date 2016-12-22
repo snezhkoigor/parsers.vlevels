@@ -34,8 +34,8 @@ class Base
     const PAIR_CAD = 'CAD';
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
-    const PAIR_SPEOM = 'SPEOM';
-    const PAIR_MSPEOM = 'MSPEOM';
+    const PAIR_SP500_EOM = 'SP500_EOM';
+    const PAIR_ESEOM = 'ES_EOM';
     const PAIR_CL = 'CL';
 
     public static $storage = 'public';
@@ -240,14 +240,14 @@ class Base
                 ];
                 break;
 
-            case self::PAIR_SPEOM:
+            case self::PAIR_SP500_EOM:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section49_S_And_P_500_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section50_S_And_P_500_Put_Options.pdf'
                 ];
                 break;
 
-            case self::PAIR_MSPEOM:
+            case self::PAIR_ESEOM:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section47_E_Mini_S_And_P_500_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section48_E_Mini_S_And_P_500_Put_Options.pdf'

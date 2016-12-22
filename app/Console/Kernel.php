@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseEur::class,
         Commands\ParseXau::class,
         Commands\ParseSpEom::class,
-        Commands\ParseMiniSpEom::class,
+        Commands\ParseEsEom::class,
         Commands\ParseCl::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
@@ -42,7 +42,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp')
+        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom')
             ->when(function() {
                 $result = true;
 
@@ -244,7 +244,7 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping();
 
-        $schedule->command('parseMiniSpEom')
+        $schedule->command('parseEsEom')
             ->when(function () {
                 $result = true;
 

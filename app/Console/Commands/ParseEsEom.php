@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Cme\MiniSpEom;
+use App\Services\Cme\EsEom;
 use App\Services\Cme\Base;
 use Illuminate\Console\Command;
 
-class ParseMiniSpEom extends Command
+class ParseEsEom extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'parseMiniSpEom';
+    protected $signature = 'parseEsEom';
 
     /**
      * The console command description.
@@ -29,7 +29,7 @@ class ParseMiniSpEom extends Command
      */
     public function handle()
     {
-        $miniSp = new MiniSpEom();
+        $miniSp = new EsEom();
 
         switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
@@ -41,7 +41,7 @@ class ParseMiniSpEom extends Command
                             $option_by_month = $miniSp->getOptionDataByMonth($month);
 
                             if (!empty($option_by_month)) {
-                                $other_month = new MiniSpEom($option_by_month->_expiration);
+                                $other_month = new EsEom($option_by_month->_expiration);
 
                                 if ($option->_option_month != $option_by_month->_option_month) {
                                     $other_month->update_day_table = false;
@@ -71,7 +71,7 @@ class ParseMiniSpEom extends Command
                             $option_by_month = $miniSp->getOptionDataByMonth($month);
 
                             if (!empty($option_by_month)) {
-                                $other_month = new MiniSp($option_by_month->_expiration);
+                                $other_month = new EsEom($option_by_month->_expiration);
 
                                 if ($option->_option_month != $option_by_month->_option_month) {
                                     $other_month->update_day_table = false;

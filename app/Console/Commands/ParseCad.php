@@ -78,7 +78,9 @@ class ParseCad extends Command
                                     $other_month->update_fractal_field_table = false;
                                 }
 
-                                $other_month->parse(true, array_values($month_data[Base::CME_BULLETIN_TYPE_CALL]), array_values($month_data[Base::CME_BULLETIN_TYPE_PUT]));
+                                if (!empty($month_data[Base::CME_BULLETIN_TYPE_CALL]) && !empty($month_data[Base::CME_BULLETIN_TYPE_PUT])) {
+                                    $other_month->parse(true, array_values($month_data[Base::CME_BULLETIN_TYPE_CALL]), array_values($month_data[Base::CME_BULLETIN_TYPE_PUT]));
+                                }
 
                                 unset($option_by_month);
                                 unset($other_month);

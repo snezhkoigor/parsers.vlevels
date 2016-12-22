@@ -25,8 +25,8 @@ class Sp extends Base
 
     public $month_end = 'EOM S&P 500 OPT';
 
-    public $json_option_product_id = 134;
-    public $json_pair_name = 'OS';
+    public $json_option_product_id = 135;
+    public $json_pair_name = 'EV';
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {

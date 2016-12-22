@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Base;
-use App\Services\Cme\Sp;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +14,8 @@ use App\Services\Cme\Chf;
 use App\Services\Cme\Gbp;
 use App\Services\Cme\Eur;
 use App\Services\Cme\Xau;
+use App\Services\Cme\MiniSp;
+use App\Services\Cme\Sp;
 
 use DB;
 
@@ -99,6 +100,11 @@ class GetDataFromHTTP extends Command
 
                     case Base::PAIR_SP:
                         $pair_obj = new Sp();
+
+                        break;
+
+                    case Base::PAIR_MSP:
+                        $pair_obj = new MiniSp();
 
                         break;
                 }

@@ -34,8 +34,9 @@ class Base
     const PAIR_CAD = 'CAD';
     const PAIR_XAU = 'XAU';
     const PAIR_USD = 'USD';
-    const PAIR_SP = 'SP';
-    const PAIR_MSP = 'MSP';
+    const PAIR_SPEOM = 'SPEOM';
+    const PAIR_MSPEOM = 'MSPEOM';
+    const PAIR_CL = 'CL';
 
     public static $storage = 'public';
 
@@ -239,17 +240,24 @@ class Base
                 ];
                 break;
 
-            case self::PAIR_SP:
+            case self::PAIR_SPEOM:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section49_S_And_P_500_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section50_S_And_P_500_Put_Options.pdf'
                 ];
                 break;
 
-            case self::PAIR_MSP:
+            case self::PAIR_MSPEOM:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section47_E_Mini_S_And_P_500_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section48_E_Mini_S_And_P_500_Put_Options.pdf'
+                ];
+                break;
+
+            case self::PAIR_CL:
+                $result = [
+                    self::CME_BULLETIN_TYPE_CALL => 'Section63_Energy_Options_Products.pdf',
+                    self::CME_BULLETIN_TYPE_PUT => 'Section63_Energy_Options_Products.pdf'
                 ];
                 break;
         }

@@ -3,7 +3,6 @@
 namespace App\Console;
 
 use App\Services\Cme\Base;
-use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +27,9 @@ class Kernel extends ConsoleKernel
         Commands\ParseGbp::class,
         Commands\ParseEur::class,
         Commands\ParseXau::class,
-        Commands\ParseSp::class,
-        Commands\ParseMiniSp::class,
+        Commands\ParseSpEom::class,
+        Commands\ParseMiniSpEom::class,
+        Commands\ParseCl::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];
@@ -225,15 +225,15 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping();
 
-        $schedule->command('parseSp')
+        $schedule->command('parseSpEom')
             ->when(function () {
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
                     if (date('w') == 0) {
-                        Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 остановлен, воскресение.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 EOM остановлен, воскресение.');
                     } else {
-                        Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 остановлен, понедельник.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг S&P 500 EOM остановлен, понедельник.');
                     }
 
                     $result = false;
@@ -244,15 +244,15 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping();
 
-        $schedule->command('parseMiniSp')
+        $schedule->command('parseMiniSpEom')
             ->when(function () {
                 $result = true;
 
                 if (date('w') == 0 || date('w') == 1) {
                     if (date('w') == 0) {
-                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 остановлен, воскресение.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 EOM остановлен, воскресение.');
                     } else {
-                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 остановлен, понедельник.');
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг E-Mini S&P 500 EOM остановлен, понедельник.');
                     }
 
                     $result = false;

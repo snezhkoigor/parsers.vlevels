@@ -13,28 +13,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-class Sp extends Base
+class Cl extends Base
 {
-    public $start_index_call = 'EOM S&P 500 C (FUTURES';
-    public $end_index_call = 'EOW3 S&P 500 C';
-    public $start_index_put = 'EOM S&P 500 P (FUTURES';
-    public $end_index_put = 'EOW3 S&P 500 P';
+    public $start_index_call = 'LO CALL NYMEX CRUDE OIL OPTIONS (PHY)';
+    public $end_index_call = 'LO PUT NYMEX CRUDE OIL OPTIONS (PHY)';
+    public $start_index_put = 'LO PUT NYMEX CRUDE OIL OPTIONS (PHY)';
+    public $end_index_put = 'OH CALL';
 
-    public $new_page_key_call = 'PRELIMINARY';
-    public $new_page_key_put = 'PRELIMINARY';
+    public $new_page_key_call = 'LO CALL';
+    public $new_page_key_put = 'LO PUT';
 
     public $month_end = 'EOM S&P 500 OPT';
 
-    public $json_option_product_id = 135;
-    public $json_pair_name = 'EV';
+    public $json_option_product_id = 190;
+    public $json_pair_name = 'LO';
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {
-        $this->pair = self::PAIR_SP;
+        $this->pair = self::PAIR_CL;
 
         parent::__construct($option_date, $pdf_files_date);
 
-        $this->pair_with_major = self::PAIR_SP;
+        $this->pair_with_major = self::PAIR_CL;
         $this->option = DB::table($this->table)
             ->where(
                 [

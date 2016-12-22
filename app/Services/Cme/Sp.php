@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Storage;
 
 class Sp extends Base
 {
-    public $start_index_call = 'S&P 500 CALL (FUTURES';
-    public $end_index_call = 'EOM S&P 500 C';
-    public $start_index_put = 'S&P 500 PUT (FUTURES';
-    public $end_index_put = 'EOM S&P 500 P';
+    public $start_index_call = 'EOM S&P 500 C (FUTURES';
+    public $end_index_call = 'EOW3 S&P 500 C';
+    public $start_index_put = 'EOM S&P 500 P (FUTURES';
+    public $end_index_put = 'EOW3 S&P 500 P';
 
     public $new_page_key_call = 'PRELIMINARY';
     public $new_page_key_put = 'PRELIMINARY';

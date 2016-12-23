@@ -20,6 +20,7 @@ use App\Services\Cme\SpEom;
 use App\Services\Cme\Euu;
 use App\Services\Cme\Jpu;
 use App\Services\Cme\Gbu;
+use App\Services\Cme\Adu;
 
 use DB;
 
@@ -129,6 +130,11 @@ class GetDataFromHTTP extends Command
 
                     case Base::PAIR_GBU:
                         $pair_obj = new Gbu();
+
+                        break;
+
+                    case Base::PAIR_ADU:
+                        $pair_obj = new Adu();
 
                         break;
                 }

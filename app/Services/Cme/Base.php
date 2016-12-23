@@ -41,6 +41,7 @@ class Base
     const PAIR_EUU = 'EUU';
     const PAIR_JPU = 'JPU';
     const PAIR_GBU = 'GBU';
+    const PAIR_ADU = 'ADU';
 
     public static $storage = 'public';
 
@@ -217,6 +218,7 @@ class Base
                 break;
 
             case self::PAIR_AUD:
+            case self::PAIR_ADU:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section38_Australian_Dollar_New_Zealand_Dollar_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section38_Australian_Dollar_New_Zealand_Dollar_Options.pdf'

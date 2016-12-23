@@ -35,6 +35,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseGbu::class,
         Commands\ParseAdu::class,
         Commands\ParseCau::class,
+        Commands\ParseChu::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];
@@ -47,7 +48,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom euu jpu gbu adu cau')
+        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom euu jpu gbu adu cau chu')
             ->when(function() {
                 $result = true;
 
@@ -353,6 +354,25 @@ class Kernel extends ConsoleKernel
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe CAD остановлен, воскресение.');
                     } else {
                         Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe CAD остановлен, понедельник.');
+                    }
+
+                    $result = false;
+                }
+
+                return $result;
+            })
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
+
+        $schedule->command('parseChu')
+            ->when(function () {
+                $result = true;
+
+                if (date('w') == 0 || date('w') == 1) {
+                    if (date('w') == 0) {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe CHF остановлен, воскресение.');
+                    } else {
+                        Log::info(date('d.m.Y H:i:s') . '. Парсинг Europe CHF остановлен, понедельник.');
                     }
 
                     $result = false;

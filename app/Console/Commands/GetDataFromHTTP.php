@@ -22,6 +22,7 @@ use App\Services\Cme\Jpu;
 use App\Services\Cme\Gbu;
 use App\Services\Cme\Adu;
 use App\Services\Cme\Cau;
+use App\Services\Cme\Chu;
 
 use DB;
 
@@ -141,6 +142,11 @@ class GetDataFromHTTP extends Command
 
                     case Base::PAIR_CAU:
                         $pair_obj = new Cau();
+
+                        break;
+
+                    case Base::PAIR_CHU:
+                        $pair_obj = new Chu();
 
                         break;
                 }

@@ -42,6 +42,7 @@ class Base
     const PAIR_JPU = 'JPU';
     const PAIR_GBU = 'GBU';
     const PAIR_ADU = 'ADU';
+    const PAIR_CAU = 'CAU';
 
     public static $storage = 'public';
 
@@ -227,6 +228,7 @@ class Base
                 break;
 
             case self::PAIR_CAD:
+            case self::PAIR_CAU:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section29_Canadian_Dollar_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section30_Canadian_Dollar_Put_Options.pdf'

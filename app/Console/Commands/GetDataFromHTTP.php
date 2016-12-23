@@ -19,6 +19,7 @@ use App\Services\Cme\SpEom;
 //use App\Services\Cme\Cl;
 use App\Services\Cme\Euu;
 use App\Services\Cme\Jpu;
+use App\Services\Cme\Gbu;
 
 use DB;
 
@@ -123,6 +124,11 @@ class GetDataFromHTTP extends Command
 
                     case Base::PAIR_JPU:
                         $pair_obj = new Jpu();
+
+                        break;
+
+                    case Base::PAIR_GBU:
+                        $pair_obj = new Gbu();
 
                         break;
                 }

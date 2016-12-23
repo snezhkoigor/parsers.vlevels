@@ -40,6 +40,7 @@ class Base
 
     const PAIR_EUU = 'EUU';
     const PAIR_JPU = 'JPU';
+    const PAIR_GBU = 'GBU';
 
     public static $storage = 'public';
 
@@ -198,6 +199,7 @@ class Base
                 break;
 
             case self::PAIR_GBP:
+            case self::PAIR_GBU:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section27_British_Pound_Call_Options.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section28_British_Pound_Put_Options.pdf'

@@ -30,6 +30,8 @@ class Xau extends Base
     public $json_settle_strike_divide = 1;
     public $json_max_month_to_parse = 4;
 
+    public $sko_multiply = 5;
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_XAU;
@@ -47,6 +49,7 @@ class Xau extends Base
             ->orderBy('_expiration')
             ->first();
 
+        $this->table_avg = 'cme_avg_' . strtolower($this->pair_with_major);
         $this->table_day = 'cme_day_'.strtolower($this->pair_with_major);
         $this->table_total = 'cme_bill_'.strtolower($this->pair_with_major).'_total';
         $this->table_month = 'cme_bill_'.strtolower($this->pair_with_major).'_'.strtolower($this->option->_option_month);

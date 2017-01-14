@@ -45,6 +45,8 @@ class Base
     const PAIR_CAU = 'CAU';
     const PAIR_CHU = 'CHU';
 
+    public $sko_multiply = 2;
+
     public static $storage = 'public';
 
     public $start_index_call = null;
@@ -117,6 +119,7 @@ class Base
     protected $option_date;
     protected $table;
     protected $table_day;
+    protected $table_avg;
     protected $table_total;
     protected $table_month;
     protected $table_parser_settings = 'parser_settings';
@@ -697,11 +700,195 @@ class Base
 
         return true;
     }
-    
+
+    public function saveAvg()
+    {
+        if (!Schema::hasTable($this->table_avg)) {
+            $this->createAvgTable();
+        }
+
+        $previousOption = DB::table($this->table)
+            ->where(
+                [
+                    ['_expiration', '<', $this->option_date],
+                    ['_symbol', '=', $this->pair_with_major]
+                ]
+            )
+            ->orderBy('_expiration')
+            ->first();
+
+        if (!empty($previousOption)) {
+            $option = $this->getOption();
+
+            $callAvgCoi = $this->calculateAvgCoi($previousOption);
+            $callAvgVolume = $this->calculateAvgVolume($previousOption);
+
+            $putAvgCoi = $this->calculateAvgCoi($previousOption, self::CME_DB_BULLETIN_TYPE_PUT);
+            $putAvgVolume = $this->calculateAvgVolume($previousOption, self::CME_DB_BULLETIN_TYPE_PUT);
+
+            $avgCoi = ($callAvgCoi > $putAvgCoi) ? $callAvgCoi : $putAvgCoi;
+            $avgVolume = ($callAvgVolume > $putAvgVolume) ? $callAvgVolume : $putAvgVolume;
+
+            if (($info = DB::table($this->table_avg)->where([ ['_option', '=', $option->_id], ['_previous_option', '=', $previousOption->_id] ])->first())) {
+                Log::info('Изменение средних значений данных.', [ 'table' => $this->table_avg, '_option' => $option->_id, '_previous_option' => $previousOption->_id ]);
+
+                DB::table($this->table_avg)
+                    ->where(
+                        [
+                            ['_option', '=', $option->_id],
+                            ['_previous_option', '=', $previousOption->_id]
+                        ]
+                    )
+                    ->update(
+                        [
+                            '_option' => $option->_id,
+                            '_previous_option' => $previousOption->_id,
+                            '_volume' => $avgVolume,
+                            '_coi' => $avgCoi
+                        ]
+                    );
+            } else {
+                Log::info('Добавление средних значений данных.', [ 'table' => $this->table_avg, '_option' => $option->_id, '_previous_option' => $previousOption->_id ]);
+
+                DB::table($this->table_avg)
+                    ->insert(
+                        [
+                            '_option' => $option->_id,
+                            '_previous_option' => $previousOption->_id,
+                            '_volume' => $avgVolume,
+                            '_coi' => $avgCoi
+                        ]
+                    );
+            }
+        }
+
+        return true;
+    }
+
+    protected function calculateAvgVolume($previousOption, $type = self::CME_DB_BULLETIN_TYPE_CALL)
+    {
+        $result = null;
+
+        if (!empty($previousOption)) {
+            $tableArray = explode('_', $this->table_month);
+            $table = str_replace($tableArray[count($tableArray) - 1], strtolower($previousOption->_option_month), $this->table_month);
+
+            $items = DB::table($table)
+                ->where(
+                    [
+                        ['_option', '=', $previousOption->_id],
+                        ['_type', '=', $type],
+                        ['_volume', '>', 0]
+                    ]
+                )
+                ->get();
+
+            $avg = DB::table($table)
+                ->where(
+                    [
+                        ['_option', '=', $previousOption->_id],
+                        ['_type', '=', $type],
+                        ['_volume', '>', 0]
+                    ]
+                )
+                ->avg('_volume');
+
+            if (!empty($items)) {
+                $count = 0;
+                $total = 0;
+                foreach ($items as $item) {
+                    $total += pow(($item->_volume - $avg), 2);
+                    $count ++;
+                }
+
+                $sko = sqrt($total/$count);
+
+                if ($sko) {
+                    foreach ($items as $item) {
+                        if ($item->_volume >= $sko * $this->sko_multiply) {
+                            $result = floor($item->_volume / 100) * 100;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    protected function calculateAvgCoi($previousOption, $type = self::CME_DB_BULLETIN_TYPE_CALL)
+    {
+        $result = null;
+
+        if (!empty($previousOption)) {
+            $tableArray = explode('_', $this->table_month);
+            $table = str_replace($tableArray[count($tableArray) - 1], strtolower($previousOption->_option_month), $this->table_month);
+
+            $items = DB::table($table)
+                ->where(
+                    [
+                        ['_option', '=', $previousOption->_id],
+                        ['_type', '=', $type],
+                        ['_coi', '>', 0]
+                    ]
+                )
+                ->get();
+
+            $avg = DB::table($table)
+                ->where(
+                    [
+                        ['_option', '=', $previousOption->_id],
+                        ['_type', '=', $type],
+                        ['_coi', '>', 0]
+                    ]
+                )
+                ->avg('_coi');
+
+            if (!empty($items)) {
+                $count = 0;
+                $total = 0;
+                foreach ($items as $item) {
+                    $total += pow(($item->_coi - $avg), 2);
+                    $count ++;
+                }
+
+                $sko = sqrt($total/$count);
+
+                if ($sko) {
+                    foreach ($items as $item) {
+                        if ($item->_coi >= $sko * $this->sko_multiply) {
+                            $result = floor($item->_coi / 100) * 100;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
     protected function extract($file)
     {
         $pdfToText = \XPDF\PdfToText::create();
         return is_file($file) ? $pdfToText->getText($file) : null;
+    }
+
+    protected function createAvgTable() {
+        Log::info('Была создана таблица.', [ 'table' => $this->table_avg ]);
+
+        Schema::create($this->table_avg, function($table) {
+            $table->increments('_id');
+            $table->integer('_option');
+            $table->integer('_previous_option');
+            $table->integer('_volume');
+            $table->integer('_coi');
+        });
+
+        return true;
     }
 
     protected function createParserSettingsTable()
@@ -745,7 +932,7 @@ class Base
 
     protected function createDayTable()
     {
-        Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
+        Log::info('Была создана таблица.', [ 'table' => $this->table_day ]);
 
         Schema::create($this->table_day, function($table) {
             $table->increments('_id');
@@ -761,7 +948,7 @@ class Base
 
     protected function createTotalTable()
     {
-        Log::info('Была создана таблица.', [ 'table' => $this->table_month ]);
+        Log::info('Была создана таблица.', [ 'table' => $this->table_total ]);
 
         Schema::create($this->table_total, function($table) {
             $table->increments('_id');

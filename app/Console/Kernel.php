@@ -36,6 +36,7 @@ class Kernel extends ConsoleKernel
         Commands\ParseAdu::class,
         Commands\ParseCau::class,
         Commands\ParseChu::class,
+        Commands\ParseAvg::class,
         Commands\Demo::class,
         Commands\ParseCustom::class
     ];
@@ -400,6 +401,10 @@ class Kernel extends ConsoleKernel
                 return $result;
             })
             ->hourly()
+            ->withoutOverlapping();
+
+        $schedule->command('parseAvg')
+            ->daily()
             ->withoutOverlapping();
 
     }

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Cme\Adu;
 use App\Services\Cme\Aud;
 use App\Services\Cme\Base;
 use App\Services\Cme\Cad;
@@ -35,6 +36,8 @@ class ParseCustom extends Command
      */
     public function handle()
     {
+        $parserType = config('app.parser');
+
         $instrument = strtoupper($this->argument('instrument'));
         $pdf_files_date_from = strtotime($this->argument('date_from'));
         $pdf_files_date_to = strtotime($this->argument('date_to'));
@@ -48,6 +51,12 @@ class ParseCustom extends Command
 
                 $pair_obj = null;
                 switch ($instrument) {
+                    case Base::PAIR_ADU:
+                        $pair_obj = new Adu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
                     case Base::PAIR_AUD:
                         $pair_obj = new Aud(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
 
@@ -84,7 +93,7 @@ class ParseCustom extends Command
                         break;
                 }
 
-                switch (config('app.parser')) {
+                switch ($parserType) {
                     case Base::PARSER_TYPE_PDF:
                         if ($pair_obj && ($files = $pair_obj->getFiles()) && ($option = $pair_obj->getOption())) {
                             $months = $pair_obj->getMonths($pair_obj->getCmeFilePath() . $files[$pair_obj::CME_BULLETIN_TYPE_CALL], $option->_option_month);
@@ -154,7 +163,6 @@ class ParseCustom extends Command
                     case Base::PARSER_TYPE_JSON:
                         if ($pair_obj && ($option = $pair_obj->getOption())) {
                             $content = @file_get_contents($pair_obj->cme_file_path . env('CME_JSON_FILE_NAME'));
-
                             if (!empty($content)) {
                                 $content = json_decode($content, true);
 
@@ -166,6 +174,11 @@ class ParseCustom extends Command
                                             $other_month = null;
 
                                             switch ($instrument) {
+                                                case Base::PAIR_ADU:
+                                                    $other_month = new Adu($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
                                                 case Base::PAIR_AUD:
                                                     $other_month = new Aud($option_by_month->_expiration, $pdf_files_date);
 

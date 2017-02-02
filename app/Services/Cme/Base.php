@@ -859,7 +859,7 @@ class Base
                 if ($sko) {
                     foreach ($items as $item) {
                         if ($item->_coi >= $sko * $this->sko_multiply) {
-                            $result = floor($item->_coi / 100) * 100;
+                            $result = ceil($item->_coi / 100) * 100;
 
                             break;
                         }

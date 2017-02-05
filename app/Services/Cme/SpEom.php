@@ -28,6 +28,9 @@ class SpEom extends Base
     public $json_option_product_id = 135;
     public $json_pair_name = 'EV';
 
+    public $maxCoiAvg = 10000;
+    public $maxVolumeAvg = 10000;
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_SP500_EOM;

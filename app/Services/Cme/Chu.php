@@ -21,6 +21,9 @@ class Chu extends Base
     public $json_pair_name = 'CHU';
     public $json_settle_strike_divide = 10;
 
+    public $maxCoiAvg = 100;
+    public $maxVolumeAvg = 100;
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_CHU;

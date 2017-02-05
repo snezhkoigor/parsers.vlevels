@@ -28,6 +28,9 @@ class EsEom extends Base
     public $json_option_product_id = 136;
     public $json_pair_name = 'EW';
 
+    public $maxCoiAvg = 15000;
+    public $maxVolumeAvg = 15000;
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_ESEOM;

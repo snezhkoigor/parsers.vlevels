@@ -82,7 +82,10 @@ class Base
 
     public $min_fractal_volume = 10;
     public $update_fractal_field_table = true;
-    
+
+    public $maxCoiAvg = 1000;
+    public $maxVolumeAvg = 1000;
+
     public static $month_associations = array(
         'jan' => '01',
         'feb' => '02',
@@ -728,6 +731,9 @@ class Base
 
             $avgCoi = ($callAvgCoi > $putAvgCoi) ? $callAvgCoi : $putAvgCoi;
             $avgVolume = ($callAvgVolume > $putAvgVolume) ? $callAvgVolume : $putAvgVolume;
+
+            $avgCoi = ($avgCoi > $this->maxCoiAvg) ? $this->maxCoiAvg : $avgCoi;
+            $avgVolume = ($avgVolume > $this->maxVolumeAvg) ? $this->maxVolumeAvg : $avgVolume;
 
             if (($info = DB::table($this->table_avg)->where([ ['_option', '=', $option->_id], ['_previous_option', '=', $previousOption->_id] ])->first())) {
                 Log::info('Изменение средних значений данных.', [ 'table' => $this->table_avg, '_option' => $option->_id, '_previous_option' => $previousOption->_id ]);

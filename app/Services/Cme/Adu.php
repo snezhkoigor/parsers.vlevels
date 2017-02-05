@@ -19,6 +19,9 @@ class Adu extends Base
     public $json_pair_name = 'ADU';
     public $json_settle_strike_divide = 10;
 
+    public $maxCoiAvg = 800;
+    public $maxVolumeAvg = 800;
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_ADU;

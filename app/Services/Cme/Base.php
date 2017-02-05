@@ -714,7 +714,7 @@ class Base
                     ['_symbol', '=', $this->pair_with_major]
                 ]
             )
-            ->orderBy('_expiration')
+            ->orderBy('_expiration', 'desc')
             ->first();
 
         if (!empty($previousOption)) {

@@ -404,8 +404,7 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping();
 
         $schedule->command('parseAvg')
-            ->daily()
+            ->sundays()
             ->withoutOverlapping();
-
     }
 }

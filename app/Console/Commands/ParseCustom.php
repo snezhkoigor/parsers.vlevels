@@ -103,12 +103,12 @@ class ParseCustom extends Command
                     case Base::PARSER_TYPE_PDF:
                         if ($pair_obj && ($files = $pair_obj->getFiles()) && ($option = $pair_obj->getOption())) {
                             if ($instrument === Base::PAIR_LO) {
-//                                $current_month = new Lo();
+                                $current_month = new Lo();
 
-//                                if ($pair_obj->_option_month != $current_month->_option_month) {
-//                                    $pair_obj->update_day_table = false;
-//                                    $pair_obj->update_fractal_field_table = false;
-//                                }
+                                if ($pair_obj->_option_month != $current_month->_option_month) {
+                                    $pair_obj->update_day_table = false;
+                                    $pair_obj->update_fractal_field_table = false;
+                                }
 
                                 $pair_obj->parse(false);
                                 unset($pair_obj);

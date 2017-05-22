@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Cme\Cl;
+use App\Services\Cme\Lo;
 use App\Services\Cme\Base;
 use Illuminate\Console\Command;
 
-class ParseCl extends Command
+class ParseLo extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'parseCl';
+    protected $signature = 'parseLo';
 
     /**
      * The console command description.
@@ -29,49 +29,51 @@ class ParseCl extends Command
      */
     public function handle()
     {
-        $cl = new Cl();
+        $lo = new Lo();
 
         switch (config('app.parser')) {
             case Base::PARSER_TYPE_PDF:
-                if (($files = $cl->getFiles()) && ($option = $cl->getOption())) {
-                    $months = $cl->getMonths($cl->getCmeFilePath() . $files[$cl::CME_BULLETIN_TYPE_CALL], $option->_option_month);
+                if (($files = $lo->getFiles()) && ($option = $lo->getOption())) {
+                    $lo->parse();
 
-                    if (count($months) !== 0) {
-                        foreach ($months as $month) {
-                            $option_by_month = $cl->getOptionDataByMonth($month);
+//                    $months = $lo->getMonths($lo->getCmeFilePath() . $files[$lo::CME_BULLETIN_TYPE_CALL], $option->_option_month);
 
-                            if (!empty($option_by_month)) {
-                                $other_month = new Cl($option_by_month->_expiration);
-
-                                if ($option->_option_month != $option_by_month->_option_month) {
-                                    $other_month->update_day_table = false;
-                                    $other_month->update_fractal_field_table = false;
-                                }
-
-                                $other_month->parse();
-
-                                unset($option_by_month);
-                                unset($other_month);
-                            }
-                        }
-                    }
+//                    if (count($months) !== 0) {
+//                        foreach ($months as $month) {
+//                            $option_by_month = $lo->getOptionDataByMonth($month);
+//
+//                            if (!empty($option_by_month)) {
+//                                $other_month = new Lo($option_by_month->_expiration);
+//
+//                                if ($option->_option_month != $option_by_month->_option_month) {
+//                                    $other_month->update_day_table = false;
+//                                    $other_month->update_fractal_field_table = false;
+//                                }
+//
+//                                $other_month->parse();
+//
+//                                unset($option_by_month);
+//                                unset($other_month);
+//                            }
+//                        }
+//                    }
                 }
 
                 break;
 
             case Base::PARSER_TYPE_JSON:
-                $option = $cl->getOption();
-                $content = @file_get_contents($cl->cme_file_path . env('CME_JSON_FILE_NAME'));
+                $option = $lo->getOption();
+                $content = @file_get_contents($lo->cme_file_path . env('CME_JSON_FILE_NAME'));
 
                 if (!empty($content)) {
                     $content = json_decode($content, true);
 
                     if (count($content) !== 0) {
                         foreach ($content as $month => $month_data) {
-                            $option_by_month = $cl->getOptionDataByMonth($month);
+                            $option_by_month = $lo->getOptionDataByMonth($month);
 
                             if (!empty($option_by_month)) {
-                                $other_month = new Cl($option_by_month->_expiration);
+                                $other_month = new Lo($option_by_month->_expiration);
 
                                 if ($option->_option_month != $option_by_month->_option_month) {
                                     $other_month->update_day_table = false;

@@ -36,7 +36,7 @@ class Base
     const PAIR_USD = 'USD';
     const PAIR_SP500_EOM = 'SP500_EOM';
     const PAIR_ESEOM = 'ES_EOM';
-    const PAIR_CL = 'CL';
+    const PAIR_LO = 'LO';
 
     const PAIR_EUU = 'EUU';
     const PAIR_JPU = 'JPU';
@@ -273,7 +273,7 @@ class Base
                 ];
                 break;
 
-            case self::PAIR_CL:
+            case self::PAIR_LO:
                 $result = [
                     self::CME_BULLETIN_TYPE_CALL => 'Section63_Energy_Options_Products.pdf',
                     self::CME_BULLETIN_TYPE_PUT => 'Section63_Energy_Options_Products.pdf'

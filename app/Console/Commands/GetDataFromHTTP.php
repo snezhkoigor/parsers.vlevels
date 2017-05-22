@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\Cme\Base;
+use App\Services\Cme\Lo;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -115,10 +116,10 @@ class GetDataFromHTTP extends Command
 
                         break;
 
-//                    case Base::PAIR_CL:
-//                        $pair_obj = new Cl();
-//
-//                        break;
+                    case Base::PAIR_LO:
+                        $pair_obj = new Lo();
+
+                        break;
 
                     case Base::PAIR_EUU:
                         $pair_obj = new Euu();

@@ -13,15 +13,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-class Cl extends Base
+class Lo extends Base
 {
     public $start_index_call = 'LO CALL NYMEX CRUDE OIL OPTIONS (PHY)';
     public $end_index_call = 'LO PUT NYMEX CRUDE OIL OPTIONS (PHY)';
     public $start_index_put = 'LO PUT NYMEX CRUDE OIL OPTIONS (PHY)';
     public $end_index_put = 'OH CALL';
 
-    public $new_page_key_call = 'LO CALL';
-    public $new_page_key_put = 'LO PUT';
+    public $new_page_key_call = 'LO CALL NYMEX CRUDE OIL OPTIONS (PHY)';
+    public $new_page_key_put = 'LO PUT NYMEX CRUDE OIL OPTIONS (PHY)';
 
     public $month_end = 'EOM S&P 500 OPT';
 
@@ -30,11 +30,11 @@ class Cl extends Base
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {
-        $this->pair = self::PAIR_CL;
+        $this->pair = self::PAIR_LO;
 
         parent::__construct($option_date, $pdf_files_date);
 
-        $this->pair_with_major = self::PAIR_CL;
+        $this->pair_with_major = self::PAIR_LO;
         $this->option = DB::table($this->table)
             ->where(
                 [
@@ -66,5 +66,76 @@ class Cl extends Base
         if (!Schema::hasColumn($this->table_month, '_is_fractal')) {
             $this->createFieldIsFractal();
         }
+    }
+
+    protected function prepareItemFromParse($key, $data)
+    {
+        $result = array();
+
+        switch ($key) {
+            case 0:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 6) {
+                    $result = $data_arr;
+                } else {
+                    $result = array_merge($data_arr, array('+'));
+                }
+
+                break;
+
+            case 1:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                } else {
+
+                }
+
+                break;
+
+            case 2:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 2) {
+                    $result = $data_arr;
+                }
+
+                break;
+
+            case 3:
+                $data_arr = explode(' ', $data);
+
+                if (count($data_arr) == 6) {
+                    $result = $data_arr;
+                }
+
+                break;
+        }
+
+        return $result;
+    }
+
+    protected function prepareArrayFromPdf($data)
+    {
+        $strike = (int)$data[10];
+        $oi = (int)$data[4];
+        $coi = (($data[5] == '+') ? 1 : -1 )*(int)$data[7];
+        $delta = (float)$data[8];
+        $reciprocal = (float)$data[3];
+        $volume = (int)$data[14];
+
+        return array(
+            'strike' => $strike,
+            'reciprocal' => $reciprocal,
+            'volume' => $volume,
+            'oi' => $oi,
+            'coi' => $coi,
+            'delta' => $delta,
+            'cvs' => null,
+            'cvs_balance' => null,
+            'print' => null
+        );
     }
 }

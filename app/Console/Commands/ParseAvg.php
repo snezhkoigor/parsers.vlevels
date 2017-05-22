@@ -37,34 +37,34 @@ class ParseAvg extends Command
      */
     public function handle()
     {
-//        $aud = new Adu();
-//        $aud->saveAvg();
-//
-//        $eur = new Euu();
-//        $eur->saveAvg();
-//
-//        $gbp = new Gbu();
-//        $gbp->saveAvg();
-//
-//        $jpy = new Jpu();
-//        $jpy->saveAvg();
-//
-//        $cad = new Cau();
-//        $cad->saveAvg();
-//
-//        $chf = new Chu();
-//        $chf->saveAvg();
-//
-//        $xau = new Xau();
-//        $xau->saveAvg();
+        $aud = new Adu();
+        $aud->saveAvg();
+
+        $eur = new Euu();
+        $eur->saveAvg();
+
+        $gbp = new Gbu();
+        $gbp->saveAvg();
+
+        $jpy = new Jpu();
+        $jpy->saveAvg();
+
+        $cad = new Cau();
+        $cad->saveAvg();
+
+        $chf = new Chu();
+        $chf->saveAvg();
+
+        $xau = new Xau();
+        $xau->saveAvg();
 
         $lo = new Lo();
         $lo->saveAvg();
 
-//        $esEom = new EsEom();
-//        $esEom->saveAvg();
-//
-//        $spEom = new SpEom();
-//        $spEom->saveAvg();
+        $esEom = new EsEom();
+        $esEom->saveAvg();
+
+        $spEom = new SpEom();
+        $spEom->saveAvg();
     }
 }

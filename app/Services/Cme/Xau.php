@@ -30,8 +30,8 @@ class Xau extends Base
     public $json_settle_strike_divide = 1;
     public $json_max_month_to_parse = 4;
 
-    public $maxCoiAvg = 5000;
-    public $maxVolumeAvg = 5000;
+    public $maxCoiAvg = 3000;
+    public $maxVolumeAvg = 3000;
 
     public $sko_multiply = 5;
 

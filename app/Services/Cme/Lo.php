@@ -25,6 +25,9 @@ class Lo extends Base
 
     public $month_end = 'EOM S&P 500 OPT';
 
+    public $maxCoiAvg = 3000;
+    public $maxVolumeAvg = 3000;
+
     public $json_option_product_id = 190;
     public $json_pair_name = 'LO';
 
@@ -45,6 +48,7 @@ class Lo extends Base
             ->orderBy('_expiration')
             ->first();
 
+        $this->table_avg = 'cme_avg_' . strtolower($this->pair_with_major);
         $this->table_day = 'cme_day_'.strtolower($this->pair_with_major);
         $this->table_total = 'cme_bill_'.strtolower($this->pair_with_major).'_total';
         $this->table_month = 'cme_bill_'.strtolower($this->pair_with_major).'_'.strtolower($this->option->_option_month);

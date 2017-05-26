@@ -20,6 +20,8 @@ class Euu extends Base
     public $json_settle_strike_divide = 1;
     public $json_settle_multiply = 1000;
 
+    public $calendar_uri = 'https://www.cmegroup.com/trading/fx/g10/euro-fx_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
+
     public function __construct($option_date = null, $pdf_files_date = null)
     {
         $this->pair = self::PAIR_EUU;

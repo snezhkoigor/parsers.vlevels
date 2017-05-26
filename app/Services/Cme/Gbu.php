@@ -18,6 +18,7 @@ class Gbu extends Base
     public $json_option_product_id = 8098;
     public $json_pair_name = 'GBU';
     public $json_settle_strike_divide = 1;
+    public $calendar_uri = 'https://www.cmegroup.com/trading/fx/g10/british-pound_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {

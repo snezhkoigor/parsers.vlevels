@@ -20,6 +20,7 @@ class Chu extends Base
     public $json_option_product_id = 8110;
     public $json_pair_name = 'CHU';
     public $json_settle_strike_divide = 10;
+    public $calendar_uri = 'https://www.cmegroup.com/trading/fx/g10/swiss-franc_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public $maxCoiAvg = 100;
     public $maxVolumeAvg = 100;

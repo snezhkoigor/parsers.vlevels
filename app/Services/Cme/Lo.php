@@ -30,6 +30,7 @@ class Lo extends Base
 
     public $json_option_product_id = 190;
     public $json_pair_name = 'LO';
+    public $calendar_uri = 'https://www.cmegroup.com/trading/energy/crude-oil/light-sweet-crude_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {

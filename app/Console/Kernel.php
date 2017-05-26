@@ -8,6 +8,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
 
 use DB;
+use Psy\Command\Command;
 
 class Kernel extends ConsoleKernel
 {
@@ -17,6 +18,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\GetCalendar::class,
         Commands\GetDataFromHTTP::class,
         Commands\GetForwardPointsFromFTP::class,
         Commands\GetFilesFromFTP::class,
@@ -424,6 +426,10 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('parseAvg')
             ->sundays()
+            ->withoutOverlapping();
+
+        $schedule->command('GetCalendar xau euu jpu gbu adu cau chu lo')
+            ->monthlyOn(1, '23:00')
             ->withoutOverlapping();
     }
 }

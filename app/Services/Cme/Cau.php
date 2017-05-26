@@ -18,6 +18,7 @@ class Cau extends Base
     public $json_option_product_id = 8104;
     public $json_pair_name = 'CAU';
     public $json_settle_strike_divide = 10;
+    public $calendar_uri = 'https://www.cmegroup.com/trading/fx/g10/canadian-dollar_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public $maxCoiAvg = 600;
     public $maxVolumeAvg = 500;

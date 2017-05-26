@@ -69,6 +69,8 @@ class Base
     public $json_settle_strike_divide = 1;
     public $json_settle_multiply = 1;
     public $json_max_month_to_parse = 10000;
+
+    public $calendar_uri = null;
     // {bulletin_date} = xxxxxxxx
     public $json_main_data_link = 'http://www.cmegroup.com/CmeWS/mvc/Volume/Details/O/{option_product_id}/{bulletin_date}/P?optionProductId={option_product_id}&pageSize=500';
     // {bulletin_date} = xx/xx/xxxx
@@ -159,11 +161,63 @@ class Base
         }
     }
 
+    public function parseMonths()
+    {
+        if (!empty($this->calendar_uri)) {
+            $uri = str_replace('{option_product_id}', $this->json_option_product_id, $this->calendar_uri);
+
+            $content = @file_get_contents($uri);
+            if (!empty($content)) {
+                preg_match('~<table.*?id=\"calendarOptionsProductTable1\".*?>.*?<tbody>(.*)<\/tbody>.*?</table>~is', $content, $matches);
+
+                if (!empty($matches[1])) {
+                    preg_match_all('~<tr>(.*?)<\/tr>~is', $matches[1], $items);
+
+                    if (!empty($items[1]) && count($items[1])) {
+                        foreach ($items[1] as $item) {
+                            preg_match_all('~<td>(.*?)<\/td>~is', $item, $calendar);
+
+                            if (!empty($calendar[1]) && count($calendar[1])) {
+                                $date = str_replace($this->json_pair_name, '', $calendar[1][0]);
+                                $expiration = explode(' ', $calendar[1][2]);
+
+                                if (count($expiration) === 3 && strlen($date) === 3 && in_array(substr($date, 0, 1), self::$json_month_associations)) {
+                                    $month = strtoupper(array_search(substr($date, 0, 1), self::$json_month_associations));
+                                    $year = substr($date, 1, 2);
+
+                                    if (!empty($month) && !empty($year) && empty($this->getOptionDataByMonth($month . $year))) {
+                                        $this->addOptionData([
+                                            'expiration' => strtotime($expiration[2] . '-' . self::$month_associations[strtolower($expiration[1])] . '-' . $expiration[0] . ' 23:59:59'),
+                                            'option_month' => $month . $year
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public static function isFolderIsNotEmpty($folder)
     {
         $cnt = count(Storage::disk(self::$storage)->files($folder));
 
         return ($cnt > 0) ? true : false;
+    }
+
+    public function addOptionData($data)
+    {
+        DB::table($this->table)
+            ->insert(
+                [
+                    '_symbol' => $this->pair_with_major,
+                    '_expiration' => $data['expiration'],
+                    '_e_time' => null,
+                    '_option_month' => $data['option_month']
+                ]
+            );
     }
 
     public function getOptionDataByMonth($month)

@@ -25,6 +25,7 @@ class Xau extends Base
 
     public $month_end = 'HX CALL';
 
+    public $calendar_uri = 'https://www.cmegroup.com/trading/metals/precious/gold_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
     public $json_option_product_id = 192;
     public $json_pair_name = 'OG';
     public $json_settle_strike_divide = 1;

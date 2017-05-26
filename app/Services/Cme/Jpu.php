@@ -18,6 +18,7 @@ class Jpu extends Base
     public $json_option_product_id = 8122;
     public $json_pair_name = 'JPU';
     public $json_settle_strike_divide = 10;
+    public $calendar_uri = 'https://www.cmegroup.com/trading/fx/g10/japanese-yen_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public function __construct($option_date = null, $pdf_files_date = null)
     {

@@ -367,22 +367,22 @@ class Base
         if ((int)$total_call['oi'] !== 0) {
             $count++;
         }
-        if ((int)$total_call['volume'] !== 0) {
-            $count++;
-        }
-        if ((int)$total_call['coi'] !== 0) {
-            $count++;
-        }
+//        if ((int)$total_call['volume'] !== 0) {
+//            $count++;
+//        }
+//        if ((int)$total_call['coi'] !== 0) {
+//            $count++;
+//        }
 
         if ((int)$total_put['oi'] !== 0) {
             $count++;
         }
-        if ((int)$total_put['volume'] !== 0) {
-            $count++;
-        }
-        if ((int)$total_put['coi'] !== 0) {
-            $count++;
-        }
+//        if ((int)$total_put['volume'] !== 0) {
+//            $count++;
+//        }
+//        if ((int)$total_put['coi'] !== 0) {
+//            $count++;
+//        }
 
         if ($count > 0) {
             $result = false;

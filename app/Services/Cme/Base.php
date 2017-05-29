@@ -357,6 +357,40 @@ class Base
         return $result;
     }
 
+    public function isAllTotalDataIsNull($data_call, $data_put)
+    {
+        $result = true;
+        $total_call = $this->getTotalPairRows($data_call);
+        $total_put = $this->getTotalPairRows($data_put);
+
+        $count = 0;
+        if ((int)$total_call['oi'] !== 0) {
+            $count++;
+        }
+        if ((int)$total_call['volume'] !== 0) {
+            $count++;
+        }
+        if ((int)$total_call['coi'] !== 0) {
+            $count++;
+        }
+
+        if ((int)$total_put['oi'] !== 0) {
+            $count++;
+        }
+        if ((int)$total_put['volume'] !== 0) {
+            $count++;
+        }
+        if ((int)$total_put['coi'] !== 0) {
+            $count++;
+        }
+
+        if ($count > 0) {
+            $result = false;
+        }
+
+        return $result;
+    }
+
     public function addTotalCmeData($id, $date, $data_call, $data_put)
     {
         $total_call = $this->getTotalPairRows($data_call);
@@ -713,41 +747,43 @@ class Base
                 $data_put = empty($put) ? $this->getRows($this->cme_file_path . $this->files[self::CME_BULLETIN_TYPE_PUT], $this->option->_option_month, self::CME_BULLETIN_TYPE_PUT) : $put;
 
                 if (count($data_call) && count($data_put)) {
-                    $max_oi_call = 0;
-                    $max_oi_put = 0;
+                    $is_total_data_is_null = $this->isAllTotalDataIsNull($data_call, $data_put);
 
-                    if (count($data_call) !== 0) {
-                        $max_oi_call = $this->addCmeData($this->pdf_files_date, $data_call, self::CME_BULLETIN_TYPE_CALL);
-                    } else {
-                        Log::warning('Не смогли получить основные данные дефолтным методом.', ['type' => self::CME_BULLETIN_TYPE_CALL, 'pair' => $this->pair, 'date' => $this->pdf_files_date]);
-                    }
-                    if (count($data_put) !== 0) {
-                        $max_oi_put = $this->addCmeData($this->pdf_files_date, $data_put, self::CME_BULLETIN_TYPE_PUT);
-                    } else {
-                        Log::warning('Не смогли получить основные данные дефолтным методом.', ['type' => self::CME_BULLETIN_TYPE_PUT, 'pair' => $this->pair, 'date' => $this->pdf_files_date]);
-                    }
+                    if ($is_total_data_is_null === false) {
+                        $max_oi_call = 0;
+                        $max_oi_put = 0;
 
-                    if (DB::table($this->table_month)->where('_date', '=', $this->pdf_files_date)->first()) {
-                        $this->addTotalCmeData($this->option->_id, $this->pdf_files_date, $data_call, $data_put);
-                        $this->updatePairPrints($this->pdf_files_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
-
-                        if ($this->update_day_table === true && config('app.parser') == Base::PARSER_TYPE_PDF) {
-                            $this->updateCmeDayTable($this->pdf_files_date, $data_call, $data_put, $this->pair_with_major);
+                        if (count($data_call) !== 0) {
+                            $max_oi_call = $this->addCmeData($this->pdf_files_date, $data_call, self::CME_BULLETIN_TYPE_CALL);
+                        } else {
+                            Log::warning('Не смогли получить основные данные дефолтным методом.', ['type' => self::CME_BULLETIN_TYPE_CALL, 'pair' => $this->pair, 'date' => $this->pdf_files_date]);
+                        }
+                        if (count($data_put) !== 0) {
+                            $max_oi_put = $this->addCmeData($this->pdf_files_date, $data_put, self::CME_BULLETIN_TYPE_PUT);
+                        } else {
+                            Log::warning('Не смогли получить основные данные дефолтным методом.', ['type' => self::CME_BULLETIN_TYPE_PUT, 'pair' => $this->pair, 'date' => $this->pdf_files_date]);
                         }
 
-                        $this->updateCvs($this->pdf_files_date, $data_call, $data_put);
+                        if (DB::table($this->table_month)->where('_date', '=', $this->pdf_files_date)->first()) {
+                            $this->addTotalCmeData($this->option->_id, $this->pdf_files_date, $data_call, $data_put);
+                            $this->updatePairPrints($this->pdf_files_date, ($max_oi_call > $max_oi_put ? $max_oi_call : $max_oi_put));
 
-                        if ($this->update_fractal_field_table == true) {
-                            $this->updateIsFractal($this->pdf_files_date, $data_call, $data_put);
+                            if ($this->update_day_table === true && config('app.parser') == Base::PARSER_TYPE_PDF) {
+                                $this->updateCmeDayTable($this->pdf_files_date, $data_call, $data_put, $this->pair_with_major);
+                            }
+
+                            $this->updateCvs($this->pdf_files_date, $data_call, $data_put);
+
+                            if ($this->update_fractal_field_table == true) {
+                                $this->updateIsFractal($this->pdf_files_date, $data_call, $data_put);
+                            }
                         }
-                    }
 
-                    $this->finish($this->option->_id, $update_e_time);
+                        $this->finish($this->option->_id, $update_e_time);
+                    } else {
+                        Log::warning('Нет данных total PUT и CALL.', ['pair' => $this->pair, 'date' => $this->option_date]);
+                    }
                 } else {
-//                    Mail::raw('Нет данных PUT и CALL: pair - ' . $this->pair . ', date - ' . date('d.m.Y', $this->option_date) . ', pdf_files_date - ' . date('d.m.Y', $this->pdf_files_date), function($message) {
-//                        $message->to(self::$email)->subject('Парсер сломался');
-//                    });
-
                     Log::warning('Нет данных PUT и CALL.', ['pair' => $this->pair, 'date' => $this->option_date]);
                 }
             } else {

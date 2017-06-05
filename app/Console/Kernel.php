@@ -69,7 +69,7 @@ class Kernel extends ConsoleKernel
             })
             ->everyThirtyMinutes()
             ->when(function () {
-                return date('G') >= 7 && date('G') <= 11;
+                return date('G') >= 7 && date('G') <= 13;
             })
             ->withoutOverlapping();
 

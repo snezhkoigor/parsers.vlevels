@@ -51,7 +51,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('getDataFromHTTP aud cad eur jpy gbp chf xau sp500_eom es_eom euu jpu gbu adu cau chu lo')
+        $schedule->command('getDataFromHTTP euu jpu gbu adu cau chu lo xau')
             ->when(function() {
                 $result = true;
 

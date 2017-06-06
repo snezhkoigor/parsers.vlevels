@@ -49,9 +49,9 @@ class EsEom extends Base
             ->first();
 
         $this->table_avg = 'cme_avg_' . strtolower($this->pair_with_major);
-        $this->table_day = 'cme_day_'.strtolower($this->pair_with_major);
-        $this->table_total = 'cme_bill_'.strtolower($this->pair_with_major).'_total';
-        $this->table_month = 'cme_bill_'.strtolower($this->pair_with_major).'_'.strtolower($this->option->_option_month);
+        $this->table_day = 'cme_day_' . strtolower($this->pair_with_major);
+        $this->table_total = 'cme_bill_' . strtolower($this->pair_with_major) . '_total';
+        $this->table_month = 'cme_bill_' . strtolower($this->pair_with_major) . '_' . strtolower($this->option->_option_month);
 
         $this->json_main_data_link = str_replace(array('{option_product_id}', '{bulletin_date}'), array($this->json_option_product_id, date('Ymd', $this->pdf_files_date)), $this->json_main_data_link);
 

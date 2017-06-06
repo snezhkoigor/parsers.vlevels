@@ -25,8 +25,10 @@ class SpEom extends Base
 
     public $month_end = 'EOM S&P 500 OPT';
 
-    public $json_option_product_id = 135;
+    public $json_option_product_id = 136;
     public $json_pair_name = 'EV';
+
+    public $calendar_uri = 'https://www.cmegroup.com/trading/equity-index/us-index/e-mini-sandp500_product_calendar_options.html?optionProductId={option_product_id}#optionProductId={option_product_id}';
 
     public $maxCoiAvg = 10000;
     public $maxVolumeAvg = 10000;

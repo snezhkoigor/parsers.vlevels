@@ -152,7 +152,7 @@ class GetDataFromHTTP extends Command
                         break;
                 }
             }
-            var_dump($pair_obj);die;
+
             $folder = env('CME_PARSER_JSON_SAVE_FOLDER') . '/' . date("Y") . '/' . date('Ymd', $pair_obj->pdf_files_date) . '/' . $pair_obj->pair . '/';
             if (Base::isFolderIsNotEmpty($folder)) {
                 Log::info('Файл уже скопирован.', ['folder' => $folder, 'pair' => $pair_obj->pair]);

@@ -26,7 +26,7 @@ class ForwardPoint
         }
 
         $contents = $disk->get($file);
-        
+
         if ($contents) {
             $lines = explode("\n", $contents);
 

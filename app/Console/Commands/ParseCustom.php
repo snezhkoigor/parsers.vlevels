@@ -6,9 +6,14 @@ use App\Services\Cme\Adu;
 use App\Services\Cme\Aud;
 use App\Services\Cme\Base;
 use App\Services\Cme\Cad;
+use App\Services\Cme\Cau;
 use App\Services\Cme\Chf;
+use App\Services\Cme\Chu;
 use App\Services\Cme\Eur;
+use App\Services\Cme\Euu;
 use App\Services\Cme\Gbp;
+use App\Services\Cme\Gbu;
+use App\Services\Cme\Jpu;
 use App\Services\Cme\Jpy;
 use App\Services\Cme\Lo;
 use App\Services\Cme\Xau;
@@ -52,6 +57,36 @@ class ParseCustom extends Command
 
                 $pair_obj = null;
                 switch ($instrument) {
+                    case Base::PAIR_EUU:
+                        $pair_obj = new Euu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
+                    case Base::PAIR_GBU:
+                        $pair_obj = new Gbu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
+                    case Base::PAIR_JPU:
+                        $pair_obj = new Jpu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
+                    case Base::PAIR_CAU:
+                        $pair_obj = new Cau(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
+                    case Base::PAIR_CHU:
+                        $pair_obj = new Chu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
+                        $parserType = Base::PARSER_TYPE_JSON;
+
+                        break;
+
                     case Base::PAIR_ADU:
                         $pair_obj = new Adu(strtotime('+1 DAY', $pdf_files_date), $pdf_files_date);
                         $parserType = Base::PARSER_TYPE_JSON;
@@ -197,8 +232,33 @@ class ParseCustom extends Command
                                             $other_month = null;
 
                                             switch ($instrument) {
+                                                case Base::PAIR_EUU:
+                                                    $other_month = new Euu($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
+                                                case Base::PAIR_GBU:
+                                                    $other_month = new Gbu($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
+                                                case Base::PAIR_JPU:
+                                                    $other_month = new Jpu($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
                                                 case Base::PAIR_ADU:
                                                     $other_month = new Adu($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
+                                                case Base::PAIR_CAU:
+                                                    $other_month = new Cau($option_by_month->_expiration, $pdf_files_date);
+
+                                                    break;
+
+                                                case Base::PAIR_CHU:
+                                                    $other_month = new Chu($option_by_month->_expiration, $pdf_files_date);
 
                                                     break;
 
